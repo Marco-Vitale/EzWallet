@@ -552,7 +552,7 @@ Developed by private company that gain money via embedded ads in the application
 | **Step#**        | **Description**  |
 |  1     | User selects an existing wallet from his Wallet's list |
 |  2     | User selects "new transaction" insert functionality |
-|  3     | User inserts name, amount, category, date and icon of the new transaction |
+|  3     | User inserts name, amount of expense/income, category, date and icon of the new transaction |
 |  4     | System checks if the inserted category exists |
 |  5     | System saves new transaction into the wallet |
 
