@@ -90,7 +90,7 @@ We assume a team of four developer, 8 hours per day, five days per week, in orde
 # Gantt
 
 
-![gantt_chart](images\V1\gantt_chart.png)
+![gantt_chart](images/V1/gantt_chart.png)
 
 # Summary
 
