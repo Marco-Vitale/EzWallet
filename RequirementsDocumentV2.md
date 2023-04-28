@@ -7,7 +7,7 @@ Version: V2 - addition of new functionalities and consistency
  
 | Version number | Change |
 | ----------------- |:-----------|
-| 2.0 | - Admin actor </br> - Ads </br> - Authentication via external services </br> - Multiple Wallet </br> - Possibility to share a wallet </br> - Import/Export transactions </br> - Password recory </br> - Filtering operation </br> - Statistics operation| 
+| 2.0 | Admin actor; Ads; Authentication via external services; Multiple Wallet; Possibility to share a wallet; Import/Export transactions; Password recovery; Filtering operation; Statistics operation| 
 
 
 # Contents

@@ -61,7 +61,7 @@ Consider the EZWallet  project in FUTURE version (as proposed by the team), assu
 
 # Gantt
 
-![gantt_chart](images/V1/gantt_chart.png)
+![gantt_chart](images/V2/gantt_chart.png)
 
 
 # Summary
