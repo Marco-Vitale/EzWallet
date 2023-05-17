@@ -54,6 +54,42 @@ export const getUser = async (req, res) => {
  */
 export const createGroup = async (req, res) => {
     try {
+        const {name, memberEmails} = req.body
+        const existingGroup = await Group.findOne({ name: req.body.name });
+        if (existingGroup) return res.status(401).json({ message: "already existing group with the same name" });
+
+        //3 Arrays in which i'll save the memberEmails according to their presence
+
+        const members = []
+        const alreadyInGroup = []
+        const membersNotFound = [] 
+
+        const membersDB = []          //This is an array containing the structure of the db
+
+        for(const mail of memberEmails){
+          const present = await User.findOne({ email: mail });
+          if(present){
+            const inAGroup = await Group.findOne({ members: { $elemMatch: { email: mail }}})
+            if(inAGroup){
+              alreadyInGroup.push(mail)
+            }else{
+              members.push(mail)
+              membersDB.push({ email: mail, user: present._id });
+            }
+          }else{
+            membersNotFound.push(mail);
+          }
+        }
+
+        if(members.length === 0) return res.status(401).json({ message: "all the `memberEmails` either do not exist or are already in a group" }); 
+
+        const newGroup = await Group.create({
+          name: name,
+          members: membersDB
+        });
+
+        res.status(200).json({ group: { name: name, members: members }, alreadyInGroup, membersNotFound });
+
     } catch (err) {
         res.status(500).json(err.message)
     }
