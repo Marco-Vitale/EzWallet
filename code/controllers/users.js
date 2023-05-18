@@ -49,14 +49,14 @@ export const getUser = async (req, res) => {
     (members whose email is already present in a group) and an array that lists the `membersNotFound` (members whose email
     +does not appear in the system)
   - Optional behavior:
-    - error 401 is returned if there is already an existing group with the same name
-    - error 401 is returned if all the `memberEmails` either do not exist or are already in a group
+    - error 400 is returned if there is already an existing group with the same name
+    - error 400 is returned if all the `memberEmails` either do not exist or are already in a group
  */
 export const createGroup = async (req, res) => {
     try {
         const {name, memberEmails} = req.body
         const existingGroup = await Group.findOne({ name: req.body.name });
-        if (existingGroup) return res.status(401).json({ message: "already existing group with the same name" });
+        if (existingGroup) return res.status(400).json({ message: "already existing group with the same name" });
 
         //3 Arrays in which i'll save the memberEmails according to their presence
 
@@ -81,7 +81,7 @@ export const createGroup = async (req, res) => {
           }
         }
 
-        if(members.length === 0) return res.status(401).json({ message: "all the `memberEmails` either do not exist or are already in a group" }); 
+        if(members.length === 0) return res.status(400).json({ message: "all the `memberEmails` either do not exist or are already in a group" }); 
 
         const newGroup = await Group.create({
           name: name,
@@ -104,7 +104,18 @@ export const createGroup = async (req, res) => {
     - empty array is returned if there are no groups
  */
 export const getGroups = async (req, res) => {
+  //TODO: ADD ADMIN VERIFICATION
     try {
+      const groups = await Group.find();
+      if(groups){
+        const arrayret = []
+        for(const g of groups){
+          arrayret.push({name: g.name, members: g.members})
+        }
+        res.status(200).json(arrayret);
+      }else{
+        res.status(200).json([]);
+      }
     } catch (err) {
         res.status(500).json(err.message)
     }
@@ -184,7 +195,14 @@ export const deleteUser = async (req, res) => {
     - error 401 is returned if the group does not exist
  */
 export const deleteGroup = async (req, res) => {
+  //TODO: ADD ADMIN VERIFICATION
     try {
+      const {name} = req.body
+      const existingGroup = await Group.findOne({ name: req.body.name });
+      if (!existingGroup) return res.status(401).json({ message: "The group does not exist!" });
+
+      const del = await Group.findOneAndDelete({ name: name }
+      ).then(res.status(200).json({message: "The group has been deleted!"}))
     } catch (err) {
         res.status(500).json(err.message)
     }
