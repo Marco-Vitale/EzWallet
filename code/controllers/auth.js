@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { User } from '../models/User.js';
 import jwt from 'jsonwebtoken';
-import { verifyAuth } from './utils.js';
+import { verifyAuth, verifyEmail } from './utils.js';
 
 /**
  * Register a new user in the system
@@ -12,9 +12,20 @@ import { verifyAuth } from './utils.js';
  */
 export const register = async (req, res) => {
     try {
+        //TODO: ADD ADMIN VERIFICATION
+
         const { username, email, password } = req.body;
-        const existingUser = await User.findOne({ email: req.body.email });
-        if (existingUser) return res.status(400).json({ message: "you are already registered" });
+
+        if(!verifyEmail(email)){
+            return res.status(400).json({message: "The email format is not valid!"})
+        }
+
+        const existingMail = await User.findOne({ email: req.body.email });
+        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+
+        const existingUser = await User.findOne({ username: req.body.username });
+        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+        
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             username,
@@ -36,9 +47,20 @@ export const register = async (req, res) => {
  */
 export const registerAdmin = async (req, res) => {
     try {
+        //TODO: ADD ADMIN VERIFICATION
+
         const { username, email, password } = req.body
-        const existingUser = await User.findOne({ email: req.body.email });
-        if (existingUser) return res.status(400).json({ message: "you are already registered" });
+
+        if(!verifyEmail(email)){
+            return res.status(400).json({message: "The email format is not valid!"})
+        }
+
+        const existingMail = await User.findOne({ email: req.body.email });
+        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+
+        const existingUser = await User.findOne({ username: req.body.username });
+        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             username,
