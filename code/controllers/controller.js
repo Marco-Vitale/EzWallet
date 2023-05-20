@@ -33,6 +33,27 @@ export const createCategory = (req, res) => {
  */
 export const updateCategory = async (req, res) => {
     try {
+        const cookie = req.cookies
+        if (!cookie.accessToken) {
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+        }
+        const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+        if (adminAuth.authorized) {
+        //Admin auth successful
+        const oldType = req.params.type;
+        const {newType, newColor} = req.body;
+        const query = {type: oldType};
+        const update = {$set: {type: newType, color: newColor}};
+        let writeResult1 = categories.updateOne(query, update);
+        if(writeResult1.nModified !== 1){
+            return res.status(401).json({error: "category not found"});
+        }
+        const updateTransactions = {$set: {type: newType}};
+        let writeResult2 = transactions.updateMany(query, updateTransactions);
+        return res.status(200).json({message: "Update Done", count: writeResult2.nModified})
+      } else {
+        res.status(401).json({ error: adminAuth.cause})
+      }
 
     } catch (error) {
         res.status(400).json({ error: error.message })
