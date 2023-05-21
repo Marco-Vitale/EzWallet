@@ -83,8 +83,10 @@ export const deleteCategory = async (req, res) => {
             const types = req.body
             const inDB = await categories.find({type: {$in: types}}).toArray();
             if(types.length != inDB.length){
-                
+                return res.status(401).json({ message: "Category doesn't exist" });
             }
+            const result = await categories.deleteMany({type: {$in: types}});
+            res.status(200).json({message: "Deletion successful", count: result.deletedCount});
         } else {
             res.status(401).json({ error: adminAuth.message})
         }
@@ -186,10 +188,71 @@ export const getAllTransactions = async (req, res) => {
  */
 export const getTransactionsByUser = async (req, res) => {
     try {
+
+        const cookie = req.cookies
+        if (!cookie.accessToken) {
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+        }
+        const isUserPresent = await User.find({username: req.params.username});
+        if(isUserPresent.count === 0){
+            return res.status(401).json({error: "User not found"});
+        } 
         //Distinction between route accessed by Admins or Regular users for functions that can be called by both
         //and different behaviors and access rights
         if (req.url.indexOf("/transactions/users/") >= 0) {
+            const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+            if(adminAuth.authorized){
+                transactions.aggregate([
+                    {
+                        $match: {
+                            username: req.params.username
+                        },
+                        $lookup: {
+                            from: "categories",
+                            localField: "type",
+                            foreignField: "type",
+                            as: "categories_info"
+                        }
+                    },
+                    { $unwind: "$categories_info" }
+                ]).then((result) => {
+                    let data = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    res.json(data);
+                }).catch(error => { throw (error) })
+
+            }else{
+                return res.status(401).json({ message: "Unauthorized" });
+            }
         } else {
+            const userAuth = verifyAuth(req, res, { authType: "User", username: req.params.username});
+            const date_filter = handleDateFilterParams(req);
+            const amount_filter = handleAmountFilterParams(req);
+            
+            if(userAuth.authorized){
+                transactions.aggregate([
+                    {
+                        $match: {
+                            $and: [
+                              { date_filter },
+                              { amount_filter },
+                              {username: req.params.username}
+                            ]
+                        },
+                        $lookup: {
+                            from: "categories",
+                            localField: "type",
+                            foreignField: "type",
+                            as: "categories_info"
+                        }
+                    },
+                    { $unwind: "$categories_info" }
+                ]).then((result) => {
+                    let data = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    res.json(data);
+                }).catch(error => { throw (error) })
+            }else{
+                return res.status(401).json({ message: "Unauthorized" });
+            }
         }
     } catch (error) {
         res.status(400).json({ error: error.message })
