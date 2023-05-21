@@ -146,10 +146,12 @@ export const getAllTransactions = async (req, res) => {
  */
 export const getTransactionsByUser = async (req, res) => {
     try {
+        let transactions = []; 
         //Distinction between route accessed by Admins or Regular users for functions that can be called by both
         //and different behaviors and access rights
         if (req.url.indexOf("/transactions/users/") >= 0) {
         } else {
+            return transactions
         }
     } catch (error) {
         res.status(400).json({ error: error.message })
@@ -214,6 +216,22 @@ export const deleteTransaction = async (req, res) => {
         if (!cookie.accessToken) {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
+        
+        const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username})
+        const adminAuth = verifyAuth(req, res, {authType: "Admin"})
+
+        if (!adminAuth){
+           if(!userAuth){
+            throw new Error('User can not perform this operation on other user (admin required)');
+           }
+        }
+        
+            
+        
+
+
+        
+
         let data = await transactions.deleteOne({ _id: req.body._id });
         return res.json("deleted");
     } catch (error) {
@@ -230,6 +248,17 @@ export const deleteTransaction = async (req, res) => {
  */
 export const deleteTransactions = async (req, res) => {
     try {
+        const cookie = req.cookies
+        const adminAuth = verifyAuth(req, res, {authType: "Admin"})
+
+        if (!cookie.accessToken && adminAuth) {
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+        }
+        req.body.forEach(el => {
+            transactions.deleteOne({_id: el});
+        })
+            
+        return res.json("deleted");
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
