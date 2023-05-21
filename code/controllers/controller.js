@@ -19,7 +19,7 @@ export const createCategory = (req, res) => {
             .then(data => res.json(data))
             .catch(err => { throw err })
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -28,14 +28,14 @@ export const createCategory = (req, res) => {
   - Request Body Content: An object having attributes `type` and `color` equal to the new values to assign to the category
   - Response `data` Content: An object with parameter `message` that confirms successful editing and a parameter `count` that is equal to the count of transactions whose category was changed with the new type
   - Optional behavior:
-    - error 401 returned if the specified category does not exist
-    - error 401 is returned if new parameters have invalid values
+    - error 400 returned if the specified category does not exist
+    - error 400 is returned if new parameters have invalid values
  */
 export const updateCategory = async (req, res) => {
     try {
 
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -44,13 +44,19 @@ export const updateCategory = async (req, res) => {
   - Request Body Content: An array of strings that lists the `types` of the categories to be deleted
   - Response `data` Content: An object with parameter `message` that confirms successful deletion and a parameter `count` that is equal to the count of affected transactions (deleting a category sets all transactions with that category to have `investment` as their new category)
   - Optional behavior:
-    - error 401 is returned if the specified category does not exist
+    - error 400 is returned if the specified category does not exist
+
+  Additional requirements:
+  - it can delete more than one category as it receives an array of types
+  - it must return with an error if there is at least one type in the array that does not exist
+  - at least one category must remain in the database after deletion (if there are three categories in the database and the method is called to delete all the categories, then the first category in the database cannot be deleted)
+  - all the transactions that have a category that is deleted must have their category changed to the first category type rather than to the default category. Transactions with a category that does not exist are not fetched by the aggregate method, which performs a join operation.
  */
 export const deleteCategory = async (req, res) => {
     try {
 
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})   
     }
 }
 
@@ -73,7 +79,7 @@ export const getCategories = async (req, res) => {
 
         return res.json(filter)
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -82,7 +88,10 @@ export const getCategories = async (req, res) => {
   - Request Body Content: An object having attributes `username`, `type` and `amount`
   - Response `data` Content: An object having attributes `username`, `type`, `amount` and `date`
   - Optional behavior:
-    - error 401 is returned if the username or the type of category does not exist
+    - error 400 is returned if the username or the type of category does not exist
+
+  The createTransaction method receives a username in both its request body and as its request parameter: 
+  - The two must be equal to allow the creation, in case they are different then the method must return a 400 error
  */
 export const createTransaction = async (req, res) => {
     try {
@@ -96,7 +105,7 @@ export const createTransaction = async (req, res) => {
             .then(data => res.json(data))
             .catch(err => { throw err })
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -131,7 +140,7 @@ export const getAllTransactions = async (req, res) => {
             res.json(data);
         }).catch(error => { throw (error) })
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -140,7 +149,7 @@ export const getAllTransactions = async (req, res) => {
   - Request Body Content: None
   - Response `data` Content: An array of objects, each one having attributes `username`, `type`, `amount`, `date` and `color`
   - Optional behavior:
-    - error 401 is returned if the user does not exist
+    - error 400 is returned if the user does not exist
     - empty array is returned if there are no transactions made by the user
     - if there are query parameters and the function has been called by a Regular user then the returned transactions must be filtered according to the query parameters
  */
@@ -152,7 +161,7 @@ export const getTransactionsByUser = async (req, res) => {
         } else {
         }
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -162,12 +171,12 @@ export const getTransactionsByUser = async (req, res) => {
   - Response `data` Content: An array of objects, each one having attributes `username`, `type`, `amount`, `date` and `color`, filtered so that `type` is the same for all objects
   - Optional behavior:
     - empty array is returned if there are no transactions made by the user with the specified category
-    - error 401 is returned if the user or the category does not exist
+    - error 400 is returned if the user or the category does not exist
  */
 export const getTransactionsByUserByCategory = async (req, res) => {
     try {
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -182,7 +191,7 @@ export const getTransactionsByUserByCategory = async (req, res) => {
 export const getTransactionsByGroup = async (req, res) => {
     try {
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -191,13 +200,13 @@ export const getTransactionsByGroup = async (req, res) => {
   - Request Body Content: None
   - Response `data` Content: An array of objects, each one having attributes `username`, `type`, `amount`, `date` and `color`, filtered so that `type` is the same for all objects.
   - Optional behavior:
-    - error 401 is returned if the group or the category does not exist
+    - error 400 is returned if the group or the category does not exist
     - empty array must be returned if there are no transactions made by the group with the specified category
  */
 export const getTransactionsByGroupByCategory = async (req, res) => {
     try {
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})   
     }
 }
 
@@ -206,7 +215,7 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
   - Request Body Content: The `_id` of the transaction to be deleted
   - Response `data` Content: A string indicating successful deletion of the transaction
   - Optional behavior:
-    - error 401 is returned if the user or the transaction does not exist
+    - error 400 is returned if the user or the transaction does not exist
  */
 export const deleteTransaction = async (req, res) => {
     try {
@@ -217,7 +226,7 @@ export const deleteTransaction = async (req, res) => {
         let data = await transactions.deleteOne({ _id: req.body._id });
         return res.json("deleted");
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
 
@@ -226,11 +235,11 @@ export const deleteTransaction = async (req, res) => {
   - Request Body Content: An array of strings that lists the `_ids` of the transactions to be deleted
   - Response `data` Content: A message confirming successful deletion
   - Optional behavior:
-    - error 401 is returned if at least one of the `_ids` does not have a corresponding transaction. Transactions that have an id are not deleted in this case
+    - error 400 is returned if at least one of the `_ids` does not have a corresponding transaction. Transactions that have an id are not deleted in this case
  */
 export const deleteTransactions = async (req, res) => {
     try {
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(500).json({error: err.message})    
     }
 }
