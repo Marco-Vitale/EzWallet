@@ -44,13 +44,13 @@ export const updateCategory = async (req, res) => {
         const {newType, newColor} = req.body;
         const alreadyIn = await categories.findOne({$or: [ { type: newType }, { color: newColor } ] });
         if(newType === "" || newColor === "" || alreadyIn){
-            return res.status(401).json({message: "Invalid input values"});
+            return res.status(400).json({message: "Invalid input values"});
         }
         const query = {type: oldType};
         const update = {$set: {type: newType, color: newColor}};
         const writeResult1 = await categories.updateOne(query, update);
         if(writeResult1.nModified !== 1){
-            return res.status(401).json({error: "category not found"});
+            return res.status(400).json({error: "category not found"});
         }
         const updateTransactions = {$set: {type: newType}};
         const writeResult2 = await transactions.updateMany(query, updateTransactions);
@@ -83,7 +83,7 @@ export const deleteCategory = async (req, res) => {
             const types = req.body
             const inDB = await categories.find({type: {$in: types}}).toArray();
             if(types.length != inDB.length){
-                return res.status(401).json({ message: "Category doesn't exist" });
+                return res.status(400).json({ message: "Category doesn't exist" });
             }
             const result = await categories.deleteMany({type: {$in: types}});
             res.status(200).json({message: "Deletion successful", count: result.deletedCount});
@@ -195,7 +195,7 @@ export const getTransactionsByUser = async (req, res) => {
         }
         const isUserPresent = await User.find({username: req.params.username});
         if(isUserPresent.count === 0){
-            return res.status(401).json({error: "User not found"});
+            return res.status(400).json({error: "User not found"});
         } 
         //Distinction between route accessed by Admins or Regular users for functions that can be called by both
         //and different behaviors and access rights
