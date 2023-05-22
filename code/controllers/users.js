@@ -1,6 +1,7 @@
 import { Group, User } from "../models/User.js";
 import { transactions } from "../models/model.js";
 import { verifyAuth } from "./utils.js";
+import jwt from 'jsonwebtoken'
 
 /**
  * Return all the users
@@ -54,7 +55,13 @@ export const getUser = async (req, res) => {
  */
 export const createGroup = async (req, res) => {
     try {
-      //TODO: ADD COOKIE VERIFICATION + ADD mail of the user that does the request
+
+        const cookie = req.cookies
+        if (!cookie.accessToken || !cookie.refreshToken) {
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+        }
+
+        const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
       
         const {name, memberEmails} = req.body
         const existingGroup = await Group.findOne({ name: req.body.name });
@@ -67,6 +74,22 @@ export const createGroup = async (req, res) => {
         const membersNotFound = [] 
 
         const membersDB = []          //This is an array containing the structure of the db
+
+        //Additional checks on the caller of the creation function
+
+        const inAGroup = await Group.findOne({ members: { $elemMatch: { email: decodedAccessToken.email }}})
+
+        if(inAGroup){
+          return res.status(400).json({ message: "You are already part of a group!"});
+        }else{
+          const calleeUser = await User.findOne({ email: decodedAccessToken.email });
+          if(calleeUser){
+            members.push(decodedAccessToken.email)
+            membersDB.push({ email: decodedAccessToken.email, user: calleeUser._id });
+          }else{
+            return res.status(400).json({ message: "Unexpected error"});
+          }
+        }
 
         for(const mail of memberEmails){
           const present = await User.findOne({ email: mail });
@@ -107,10 +130,11 @@ export const createGroup = async (req, res) => {
  */
 export const getGroups = async (req, res) => {
     try {
-      console.log("CHiamo la verifica:....\n");
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
       if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
 
+      //!! IN QUESTO MOMENTO VIENE RITORNATO ANCHE L'ID PER OGNI MEMBER.. DA TOGLIERE?
+      
       const groups = await Group.find();
       if(groups){
         const arrayret = []

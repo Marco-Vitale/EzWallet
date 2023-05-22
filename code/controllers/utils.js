@@ -74,7 +74,6 @@ export const verifyAuth = (req, res, info) => {
                 break;
 
             case 'Admin':
-                console.log("Sono dentro lo switch admin...\n");
 
                 if (decodedAccessToken.role !== "Admin" || decodedRefreshToken.role !== "Admin") {
                     return { authorized: false, cause: "Requested auth for a different role" }
