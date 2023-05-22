@@ -57,7 +57,7 @@ export const getUser = async (req, res) => {
 export const createGroup = async (req, res) => {
   try {
   } catch (err) {
-      res.status(500).json(err.message)
+    res.status(500).json({error: err.message})    
   }
 }
   
@@ -142,7 +142,7 @@ export const addToGroup = async (req, res) => {
           continue;
         }
 
-        const userInGroup = retrieveGroup.members.find(member => member.email === email);
+        const userInGroup = await Group.findOne({ 'members.email': email });
         if (userInGroup) {
           alreadyInGroup.push(email);
           continue;
