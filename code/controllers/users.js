@@ -54,6 +54,8 @@ export const getUser = async (req, res) => {
  */
 export const createGroup = async (req, res) => {
     try {
+      //TODO: ADD COOKIE VERIFICATION + ADD mail of the user that does the request
+      
         const {name, memberEmails} = req.body
         const existingGroup = await Group.findOne({ name: req.body.name });
         if (existingGroup) return res.status(400).json({ message: "already existing group with the same name" });
@@ -104,8 +106,11 @@ export const createGroup = async (req, res) => {
     - empty array is returned if there are no groups
  */
 export const getGroups = async (req, res) => {
-  //TODO: ADD ADMIN VERIFICATION
     try {
+      console.log("CHiamo la verifica:....\n");
+      const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+      if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+
       const groups = await Group.find();
       if(groups){
         const arrayret = []
@@ -195,8 +200,11 @@ export const deleteUser = async (req, res) => {
     - error 401 is returned if the group does not exist
  */
 export const deleteGroup = async (req, res) => {
-  //TODO: ADD ADMIN VERIFICATION
     try {
+
+      const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+      if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+
       const {name} = req.body
       const existingGroup = await Group.findOne({ name: req.body.name });
       if (!existingGroup) return res.status(401).json({ message: "The group does not exist!" });

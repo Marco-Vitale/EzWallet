@@ -12,8 +12,6 @@ import { verifyAuth, verifyEmail } from './utils.js';
  */
 export const register = async (req, res) => {
     try {
-        //TODO: ADD ADMIN VERIFICATION
-
         const { username, email, password } = req.body;
 
         if(!verifyEmail(email)){
@@ -47,8 +45,9 @@ export const register = async (req, res) => {
  */
 export const registerAdmin = async (req, res) => {
     try {
-        //TODO: ADD ADMIN VERIFICATION
-
+        const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+        if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+        
         const { username, email, password } = req.body
 
         if(!verifyEmail(email)){
