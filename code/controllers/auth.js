@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { User } from '../models/User.js';
 import jwt from 'jsonwebtoken';
-import { verifyAuth } from './utils.js';
+import { verifyAuth, verifyEmail } from './utils.js';
 
 /**
  * Register a new user in the system
@@ -14,9 +14,17 @@ export const register = async (req, res) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try {
         const { username, email, password } = req.body;
-        if(!emailPattern.test(email)) return res.status(400).json({ message: "email format is not correct" });
-        const existingUser = await User.findOne({ email: req.body.email, username: req.body.username });
-        if (existingUser) return res.status(400).json({ message: "you are already registered" });
+
+        if(!verifyEmail(email)){
+            return res.status(400).json({message: "The email format is not valid!"})
+        }
+
+        const existingMail = await User.findOne({ email: req.body.email });
+        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+
+        const existingUser = await User.findOne({ username: req.body.username });
+        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+        
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             username,
@@ -39,10 +47,21 @@ export const register = async (req, res) => {
 export const registerAdmin = async (req, res) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try {
+        const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+        if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+        
         const { username, email, password } = req.body
-        if(!emailPattern.test(email)) return res.status(400).json({ message: "email format is not correct" });
-        const existingUser = await User.findOne({ email: req.body.email, username: req.body.username });
-        if (existingUser) return res.status(400).json({ message: "you are already registered" });
+
+        if(!verifyEmail(email)){
+            return res.status(400).json({message: "The email format is not valid!"})
+        }
+
+        const existingMail = await User.findOne({ email: req.body.email });
+        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+
+        const existingUser = await User.findOne({ username: req.body.username });
+        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             username,

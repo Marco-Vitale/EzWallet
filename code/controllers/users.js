@@ -1,6 +1,7 @@
 import { Group, User } from "../models/User.js";
 import { transactions } from "../models/model.js";
 import { verifyAuth } from "./utils.js";
+import jwt from 'jsonwebtoken'
 
 /**
  * Return all the users
@@ -56,10 +57,70 @@ export const getUser = async (req, res) => {
     - error 400 is returned if all the `memberEmails` either do not exist or are already in a group
  */
 export const createGroup = async (req, res) => {
-  try {
-  } catch (err) {
-    res.status(500).json({error: err.message})    
-  }
+    try {
+
+        const cookie = req.cookies
+        if (!cookie.accessToken || !cookie.refreshToken) {
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+        }
+
+        const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
+      
+        const {name, memberEmails} = req.body
+        const existingGroup = await Group.findOne({ name: req.body.name });
+        if (existingGroup) return res.status(400).json({ message: "already existing group with the same name" });
+
+        //3 Arrays in which i'll save the memberEmails according to their presence
+
+        const members = []
+        const alreadyInGroup = []
+        const membersNotFound = [] 
+
+        const membersDB = []          //This is an array containing the structure of the db
+
+        //Additional checks on the caller of the creation function
+
+        const inAGroup = await Group.findOne({ members: { $elemMatch: { email: decodedAccessToken.email }}})
+
+        if(inAGroup){
+          return res.status(400).json({ message: "You are already part of a group!"});
+        }else{
+          const calleeUser = await User.findOne({ email: decodedAccessToken.email });
+          if(calleeUser){
+            members.push(decodedAccessToken.email)
+            membersDB.push({ email: decodedAccessToken.email, user: calleeUser._id });
+          }else{
+            return res.status(400).json({ message: "Unexpected error"});
+          }
+        }
+
+        for(const mail of memberEmails){
+          const present = await User.findOne({ email: mail });
+          if(present){
+            const inAGroup = await Group.findOne({ members: { $elemMatch: { email: mail }}})
+            if(inAGroup){
+              alreadyInGroup.push(mail)
+            }else{
+              members.push(mail)
+              membersDB.push({ email: mail, user: present._id });
+            }
+          }else{
+            membersNotFound.push(mail);
+          }
+        }
+
+        if(members.length === 0) return res.status(400).json({ message: "all the `memberEmails` either do not exist or are already in a group" }); 
+
+        const newGroup = await Group.create({
+          name: name,
+          members: membersDB
+        });
+
+        res.status(200).json({ group: { name: name, members: members }, alreadyInGroup, membersNotFound });
+
+    } catch (err) {
+        res.status(500).json(err.message)
+    }
 }
   
 
@@ -75,6 +136,21 @@ export const createGroup = async (req, res) => {
  */
 export const getGroups = async (req, res) => {
     try {
+      const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+      if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+
+      //!! IN QUESTO MOMENTO VIENE RITORNATO ANCHE L'ID PER OGNI MEMBER.. DA TOGLIERE?
+      
+      const groups = await Group.find();
+      if(groups){
+        const arrayret = []
+        for(const g of groups){
+          arrayret.push({name: g.name, members: g.members})
+        }
+        res.status(200).json(arrayret);
+      }else{
+        res.status(200).json([]);
+      }
     } catch (err) {
       res.status(500).json({error: err.message})    
     }
@@ -270,6 +346,16 @@ export const deleteUser = async (req, res) => {
  */
 export const deleteGroup = async (req, res) => {
     try {
+
+      const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+      if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+
+      const {name} = req.body
+      const existingGroup = await Group.findOne({ name: req.body.name });
+      if (!existingGroup) return res.status(401).json({ message: "The group does not exist!" });
+
+      const del = await Group.findOneAndDelete({ name: name }
+      ).then(res.status(200).json({message: "The group has been deleted!"}))
     } catch (err) {
       res.status(500).json({error: err.message})    
     }

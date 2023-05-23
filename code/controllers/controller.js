@@ -122,6 +122,10 @@ export const getAllTransactions = async (req, res) => {
         if (!cookie.accessToken) {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
+        
+        const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+        if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+
         /**
          * MongoDB equivalent to the query "SELECT * FROM transactions, categories WHERE transactions.type = categories.type"
          */
