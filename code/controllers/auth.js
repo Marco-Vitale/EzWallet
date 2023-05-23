@@ -11,6 +11,7 @@ import { verifyAuth, verifyEmail } from './utils.js';
     - error 400 is returned if there is already a user with the same username and/or email
  */
 export const register = async (req, res) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try {
         const { username, email, password } = req.body;
 
@@ -32,7 +33,7 @@ export const register = async (req, res) => {
         });
         res.status(200).json('user added succesfully');
     } catch (err) {
-        res.status(400).json(err);
+        res.status(500).json({error: err.message})    
     }
 };
 
@@ -44,6 +45,7 @@ export const register = async (req, res) => {
     - error 400 is returned if there is already a user with the same username and/or email
  */
 export const registerAdmin = async (req, res) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try {
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
         if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
@@ -69,7 +71,7 @@ export const registerAdmin = async (req, res) => {
         });
         res.status(200).json('admin added succesfully');
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({error: err.message})    
     }
 
 }
@@ -111,7 +113,7 @@ export const login = async (req, res) => {
         res.cookie('refreshToken', refreshToken, { httpOnly: true, domain: "localhost", path: '/api', maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'none', secure: true })
         res.status(200).json({ data: { accessToken: accessToken, refreshToken: refreshToken } })
     } catch (error) {
-        res.status(400).json(error)
+        res.status(500).json({error: err.message})
     }
 }
 
@@ -135,6 +137,6 @@ export const logout = async (req, res) => {
         const savedUser = await user.save()
         res.status(200).json('logged out')
     } catch (error) {
-        res.status(400).json(error)
+        res.status(500).json({error: err.message})
     }
 }

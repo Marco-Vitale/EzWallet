@@ -9,6 +9,11 @@ import jwt from 'jsonwebtoken'
  * @throws an error if the query parameters include `date` together with at least one of `from` or `upTo`
  */
 export const handleDateFilterParams = (req) => {
+    return {cause: "void"}
+}
+
+export const handleAmountFilterParams = (req) => {
+    return {cause: "void"}
 }
 
 /**
@@ -36,6 +41,12 @@ export const handleDateFilterParams = (req) => {
  * @returns true if the user satisfies all the conditions of the specified `authType` and false if at least one condition is not satisfied
  *  Refreshes the accessToken if it has expired and the refreshToken is still valid
  */
+/* USAGE examples:
+const simpleAuth = verifyAuth(req, res, {authType: "Simple"})
+const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username})
+const adminAuth = verifyAuth(req, res, {authType: "Admin"})
+const groupAuth = verifyAuth(req, res, {authType: "Group", emails: <array of emails>})
+*/
 export const verifyAuth = (req, res, info) => {
     const cookie = req.cookies
     if (!cookie.accessToken || !cookie.refreshToken) {
