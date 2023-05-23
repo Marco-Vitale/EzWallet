@@ -9,6 +9,11 @@ import jwt from 'jsonwebtoken'
  * @throws an error if the query parameters include `date` together with at least one of `from` or `upTo`
  */
 export const handleDateFilterParams = (req) => {
+    return {cause: "void"}
+}
+
+export const handleAmountFilterParams = (req) => {
+    return {cause: "void"}
 }
 
 /**
@@ -123,14 +128,4 @@ export const verifyAuth = (req, res, info) => {
             return { authorized: false, cause: err.name };
         }
     }
-}
-
-/**
- * Handle possible amount filtering options in the query parameters for getTransactionsByUser when called by a Regular user.
- * @param req the request object that can contain query parameters
- * @returns an object that can be used for filtering MongoDB queries according to the `amount` parameter.
- *  The returned object must handle all possible combination of amount filtering parameters, including the case where none are present.
- *  Example: {amount: {$gte: 100}} returns all transactions whose `amount` parameter is greater or equal than 100
- */
-export const handleAmountFilterParams = (req) => {
 }

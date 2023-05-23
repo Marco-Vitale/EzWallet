@@ -25,9 +25,9 @@ router.post('/login', login)
 router.get("/categories", getCategories)
 router.get("/users/:username", getUser)
 router.post("/users/:username/transactions", createTransaction)
-router.get("/users/:username/transactions", getTransactionsByUser)
-router.delete("/users/:username/transactions", deleteTransaction)
-router.get("/users/:username/transactions/category/:category", getTransactionsByUserByCategory)
+router.get("/users/:username/transactions", getTransactionsByUser) //TODO: debugging
+router.delete("/users/:username/transactions", deleteTransaction) //DONE
+router.get("/users/:username/transactions/category/:category", getTransactionsByUserByCategory) 
 router.post("/groups", createGroup)
 router.get("/groups/:name", getGroup)
 router.get("/groups/:name/transactions", getTransactionsByGroup)
@@ -42,11 +42,11 @@ router.post("/categories", createCategory)
 router.patch("/categories/:type", updateCategory)
 router.delete("/categories", deleteCategory)
 router.get("/transactions", getAllTransactions)
-router.delete("/transactions", deleteTransactions)
-router.get("/transactions/users/:username", getTransactionsByUser)
+router.delete("/transactions", deleteTransactions) //DONE
+router.get("/transactions/users/:username", getTransactionsByUser) // TODO: debug 
 router.get("/transactions/users/:username/category/:category", getTransactionsByUserByCategory)
-router.get("/transactions/groups/:name", getTransactionsByGroup)
-router.get("/transactions/groups/:name/category/:category", getTransactionsByGroupByCategory)
+router.get("/transactions/groups/:name", getTransactionsByGroup) //TODO
+router.get("/transactions/groups/:name/category/:category", getTransactionsByGroupByCategory) //TODO
 router.get('/users', getUsers)
 router.delete("/users", deleteUser)
 router.get("/groups", getGroups)

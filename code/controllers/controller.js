@@ -156,10 +156,59 @@ export const getAllTransactions = async (req, res) => {
 export const getTransactionsByUser = async (req, res) => {
     try {
         //Distinction between route accessed by Admins or Regular users for functions that can be called by both
-        //and different behaviors and access rights
-        if (req.url.indexOf("/transactions/users/") >= 0) {
-        } else {
+        //and different behaviors and access rights:
+        //ADMIN: all users transaction  (function called in "api/transactions/users/:username")
+        //REGULAR: only logged user (function called in "api/users/:username/transactions")
+
+        //Check for authentication
+        const cookie = req.cookies
+        if (!cookie.accessToken) {
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
+        console.log("In transaction function "); 
+
+        //URL parse
+        const pathname = req.url;
+        console.log(pathname); 
+
+        const pathComponents = pathname.split("/").filter(component => component !== "");
+        
+        const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username})
+        const adminAuth = verifyAuth(req, res, {authType: "Admin"})
+        const simpleAuth = verifyAuth(req, res, {authType: "Simple"});
+        
+        console.log(req.params.username);
+        console.log("SimpleAuth -> " + simpleAuth.authorized+ " " + simpleAuth.cause); 
+        console.log("UserAuth -> " + userAuth.authorized+ " " + userAuth.cause); 
+        console.log("adminAuth -> " + adminAuth.authorized + " "+ adminAuth.casue);
+        //Admin case need: permission and specific url
+        if(adminAuth && req.url.indexOf("/transactions/users/")>=0){
+            
+            transactions.findOne({ username: pathComponents[3]}, function(err, result) {
+                if (err) {
+                  console.error('Error finding user:', err);
+                  res.status(401).json({ error: "User not found"})
+                }
+                else{
+                    console.log('User exists:', result);
+                    result}             
+                                 
+        });
+        }
+        else if((pathComponents[1] == "users" && pathComponents[3] == "transactions") && req.params.username==path[2] && (userAuth||adminAuth))
+        {
+            transactions.findOne({ username: pathComponents[1]}, function(err, result) {
+                if (err) {
+                  console.error('Error finding user:', err);
+                  res.status(401).json({ error: "User not found"})
+                }
+                else{
+                    console.log('User exists:', result);
+                    result}             
+                                 
+        });
+        }
+        throw new Error("Authorization problem");
     } catch (error) {
         res.status(500).json({error: err.message})    
     }
@@ -223,6 +272,22 @@ export const deleteTransaction = async (req, res) => {
         if (!cookie.accessToken) {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
+        
+        const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username})
+        const adminAuth = verifyAuth(req, res, {authType: "Admin"})
+
+        if (!adminAuth){
+           if(!userAuth){
+            throw new Error('User can not perform this operation on other user (admin required)');
+           }
+        }
+        
+            
+        
+
+
+        
+
         let data = await transactions.deleteOne({ _id: req.body._id });
         return res.json("deleted");
     } catch (error) {
@@ -239,6 +304,17 @@ export const deleteTransaction = async (req, res) => {
  */
 export const deleteTransactions = async (req, res) => {
     try {
+        const cookie = req.cookies
+        const adminAuth = verifyAuth(req, res, {authType: "Admin"})
+
+        if (!cookie.accessToken && adminAuth) {
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+        }
+        req.body.forEach(el => {
+            transactions.deleteOne({_id: el});
+        })
+            
+        return res.json("deleted");
     } catch (error) {
         res.status(500).json({error: err.message})    
     }
