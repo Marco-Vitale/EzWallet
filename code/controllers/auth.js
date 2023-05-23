@@ -11,7 +11,6 @@ import { verifyAuth, verifyEmail } from './utils.js';
     - error 400 is returned if there is already a user with the same username and/or email
  */
 export const register = async (req, res) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try {
         const { username, email, password } = req.body;
 
@@ -45,7 +44,6 @@ export const register = async (req, res) => {
     - error 400 is returned if there is already a user with the same username and/or email
  */
 export const registerAdmin = async (req, res) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try {
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
         if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});

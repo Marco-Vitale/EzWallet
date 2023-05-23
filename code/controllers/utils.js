@@ -12,10 +12,6 @@ export const handleDateFilterParams = (req) => {
     return {cause: "void"}
 }
 
-export const handleAmountFilterParams = (req) => {
-    return {cause: "void"}
-}
-
 /**
  * Handle possible authentication modes depending on `authType`
  * @param req the request object that contains cookie information
@@ -122,8 +118,6 @@ export const verifyAuth = (req, res, info) => {
                 res.cookie('accessToken', newAccessToken, { httpOnly: true, path: '/api', maxAge: 60 * 60 * 1000, sameSite: 'none', secure: true })
                 res.locals.message = 'Access token has been refreshed. Remember to copy the new one in the headers of subsequent calls'
                 
-                //!!: VALUTARE DI SPOSTARE IL CODICE SEGUENTE SOPRA IL SIGN DEL NUOVO ACCESS TOKEN
-
                 switch(info.authType){
                     case 'Simple':
                         return { authorized: true, cause: "Authorized" }
@@ -174,6 +168,7 @@ export const verifyAuth = (req, res, info) => {
         }
     }
 }
+
 
 /**
  * Handle possible amount filtering options in the query parameters for getTransactionsByUser when called by a Regular user.
