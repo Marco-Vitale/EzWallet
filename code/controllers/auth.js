@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { User } from '../models/User.js';
 import jwt from 'jsonwebtoken';
-import { verifyAuth } from './utils.js';
+import { verifyAuth, verifyEmail } from './utils.js';
 
 /**
  * Register a new user in the system
@@ -13,8 +13,17 @@ import { verifyAuth } from './utils.js';
 export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        const existingUser = await User.findOne({ email: req.body.email });
-        if (existingUser) return res.status(400).json({ message: "you are already registered" });
+
+        if(!verifyEmail(email)){
+            return res.status(400).json({message: "The email format is not valid!"})
+        }
+
+        const existingMail = await User.findOne({ email: req.body.email });
+        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+
+        const existingUser = await User.findOne({ username: req.body.username });
+        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+        
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             username,
@@ -23,7 +32,7 @@ export const register = async (req, res) => {
         });
         res.status(200).json('user added succesfully');
     } catch (err) {
-        res.status(400).json(err);
+        res.status(500).json({error: err.message})    
     }
 };
 
@@ -36,9 +45,21 @@ export const register = async (req, res) => {
  */
 export const registerAdmin = async (req, res) => {
     try {
+        const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+        if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+        
         const { username, email, password } = req.body
-        const existingUser = await User.findOne({ email: req.body.email });
-        if (existingUser) return res.status(400).json({ message: "you are already registered" });
+
+        if(!verifyEmail(email)){
+            return res.status(400).json({message: "The email format is not valid!"})
+        }
+
+        const existingMail = await User.findOne({ email: req.body.email });
+        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+
+        const existingUser = await User.findOne({ username: req.body.username });
+        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             username,
@@ -48,7 +69,7 @@ export const registerAdmin = async (req, res) => {
         });
         res.status(200).json('admin added succesfully');
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({error: err.message})    
     }
 
 }
@@ -90,7 +111,7 @@ export const login = async (req, res) => {
         res.cookie('refreshToken', refreshToken, { httpOnly: true, domain: "localhost", path: '/api', maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'none', secure: true })
         res.status(200).json({ data: { accessToken: accessToken, refreshToken: refreshToken } })
     } catch (error) {
-        res.status(400).json(error)
+        res.status(500).json({error: err.message})
     }
 }
 
@@ -114,6 +135,6 @@ export const logout = async (req, res) => {
         const savedUser = await user.save()
         res.status(200).json('logged out')
     } catch (error) {
-        res.status(400).json(error)
+        res.status(500).json({error: err.message})
     }
 }

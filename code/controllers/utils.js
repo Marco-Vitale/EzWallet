@@ -55,28 +55,74 @@ export const handleDateFilterParams = (req) => {
  * @returns true if the user satisfies all the conditions of the specified `authType` and false if at least one condition is not satisfied
  *  Refreshes the accessToken if it has expired and the refreshToken is still valid
  */
+/* USAGE examples:
+const simpleAuth = verifyAuth(req, res, {authType: "Simple"})
+const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username})
+const adminAuth = verifyAuth(req, res, {authType: "Admin"})
+const groupAuth = verifyAuth(req, res, {authType: "Group", emails: <array of emails>})
+*/
 export const verifyAuth = (req, res, info) => {
     const cookie = req.cookies
     if (!cookie.accessToken || !cookie.refreshToken) {
-        res.status(401).json({ message: "Unauthorized" });
-        return false;
+        return { authorized: false, cause: "Unauthorized" };
     }
     try {
+
+        //These are the basic controls performed for each tipe (the only controls for the 'simple' authType)
+
         const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
         const decodedRefreshToken = jwt.verify(cookie.refreshToken, process.env.ACCESS_KEY);
         if (!decodedAccessToken.username || !decodedAccessToken.email || !decodedAccessToken.role) {
-            res.status(401).json({ message: "Token is missing information" })
-            return false
+            return { authorized: false, cause: "Token is missing information" }
         }
         if (!decodedRefreshToken.username || !decodedRefreshToken.email || !decodedRefreshToken.role) {
-            res.status(401).json({ message: "Token is missing information" })
-            return false
+            return { authorized: false, cause: "Token is missing information" }
         }
         if (decodedAccessToken.username !== decodedRefreshToken.username || decodedAccessToken.email !== decodedRefreshToken.email || decodedAccessToken.role !== decodedRefreshToken.role) {
-            res.status(401).json({ message: "Mismatched users" });
-            return false;
+            return { authorized: false, cause: "Mismatched users" };
         }
-        return true
+
+
+        switch(info.authType){
+            case 'Simple':
+                return { authorized: true, cause: "Authorized" }
+                break;
+
+            case 'User':
+                if (decodedAccessToken.username !== info.username || decodedRefreshToken.username !== info.username) {
+                    return { authorized: false, cause: "Requested auth for a different user" }
+                }
+
+                if (decodedAccessToken.username == info.username && decodedRefreshToken.username == info.username) {
+                    return { authorized: true, cause: "Authorized" }
+                }
+                break;
+
+            case 'Admin':
+
+                if (decodedAccessToken.role !== "Admin" || decodedRefreshToken.role !== "Admin") {
+                    return { authorized: false, cause: "Requested auth for a different role" }
+                }
+
+                if (decodedAccessToken.role == "Admin" && decodedRefreshToken.role == "Admin") {
+                    return { authorized: true, cause: "Authorized" }
+                }
+                break;
+
+            case 'Group':
+                if (!info.emails.includes(decodedAccessToken.email) || !info.emails.includes(decodedRefreshToken.email)) {
+                    return { authorized: false, cause: "Mail of the token not present in the group" }
+                }
+
+                if (info.emails.includes(decodedAccessToken.email) && info.emails.includes(decodedRefreshToken.email)) {
+                    return { authorized: true, cause: "Authorized" }
+                }
+
+                break;
+
+            default:
+                return { authorized: false, cause: "Wrong authType inserted" }
+        }
     } catch (err) {
         if (err.name === "TokenExpiredError") {
             try {
@@ -89,21 +135,58 @@ export const verifyAuth = (req, res, info) => {
                 }, process.env.ACCESS_KEY, { expiresIn: '1h' })
                 res.cookie('accessToken', newAccessToken, { httpOnly: true, path: '/api', maxAge: 60 * 60 * 1000, sameSite: 'none', secure: true })
                 res.locals.message = 'Access token has been refreshed. Remember to copy the new one in the headers of subsequent calls'
-                return true
+                
+                switch(info.authType){
+                    case 'Simple':
+                        return { authorized: true, cause: "Authorized" }
+                        break;
+
+                    case 'User':
+                        if (refreshToken.username !== info.username) {
+                            return { authorized: false, cause: "Requested auth for a different user" }
+                        }
+        
+                        if (refreshToken.username == info.username) {
+                            return { authorized: true, cause: "Authorized" }
+                        }
+                        break;
+
+                    case 'Admin':
+                        if (refreshToken.role !== "Admin") {
+                            return { authorized: false, cause: "Requested auth for a different role" }
+                        }
+        
+                        if (refreshToken.role == "Admin") {
+                            return { authorized: true, cause: "Authorized" }
+                        }
+                        break;
+
+                    case 'Group':
+                        if (!info.emails.includes(refreshToken.email)) {
+                            return { authorized: false, cause: "Mail of the token not present in the group" }
+                        }
+        
+                        if (info.emails.includes(refreshToken.email)) {
+                            return { authorized: true, cause: "Authorized" }
+                        }
+                        break;
+
+                    default:
+                        return { authorized: false, cause: "Wrong authType inserted" }
+                }
             } catch (err) {
                 if (err.name === "TokenExpiredError") {
-                    res.status(401).json({ message: "Perform login again" });
+                    return { authorized: false, cause: "Perform login again" }
                 } else {
-                    res.status(401).json({ message: err.name });
+                    return { authorized: false, cause: err.name }
                 }
-                return false;
             }
         } else {
-            res.status(401).json({ message: err.name });
-            return false;
+            return { authorized: false, cause: err.name };
         }
     }
 }
+
 
 /**
  * Handle possible amount filtering options in the query parameters for getTransactionsByUser when called by a Regular user.
