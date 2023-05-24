@@ -11,13 +11,17 @@ import jwt from 'jsonwebtoken'
     - empty array is returned if there are no users
  */
 export const getUsers = async (req, res) => {
-    try {
-        
-        const users = await User.find();
-        res.status(200).json(users);
-    } catch (error) {
-      res.status(500).json({error: err.message})    
+  try {
+    const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+    if (adminAuth.authorized) {
+      const users = (await User.find()).map(user => ({username: user.username, email: user.email, role: user.role}));
+      res.status(200).json(users);
+    } else {
+      res.status(400).json({ error: adminAuth.cause})
     }
+  } catch (error) {
+    res.status(500).json({error: err.message})    
+  }
 }
 
 /**
@@ -29,17 +33,25 @@ export const getUsers = async (req, res) => {
  */
 export const getUser = async (req, res) => {
   try {
+    const name = req.params.username;
+    let data = undefined;
+
     const userAuth = verifyAuth(req, res, { authType: "User", username: req.params.username })
     if (userAuth.authorized) {
-      //User auth successful
+      const user = await User.findOne({ username : name });
+      data = {username: user.username, email: user.email, role: user.role};
     } else {
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
       if (adminAuth.authorized) {
-        //Admin auth successful
+        const user = await User.findOne({ username : name });
+        data = {username: user.username, email: user.email, role: user.role};
       } else {
-        res.status(401).json({ error: adminAuth.cause})
+        res.status(400).json({ error: adminAuth.cause})
       }
     }
+
+    res.status(200).json(data);
+
   } catch (error) {
     res.status(500).json({error: err.message})  
   }
