@@ -35,29 +35,30 @@ export const updateCategory = async (req, res) => {
     try {
         const cookie = req.cookies
         if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }); // unauthorized
+            return res.status(401).json({ message: "Unauthorized for access token" }); // unauthorized
         }
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-        if (adminAuth.authorized) {
-        //Admin auth successful
-        const oldType = req.params.type;
-        const {newType, newColor} = req.body;
-        const alreadyIn = await categories.findOne({$or: [ { type: newType }, { color: newColor } ] });
-        if(newType === "" || newColor === "" || alreadyIn){
-            return res.status(400).json({message: "Invalid input values"});
+        if (adminAuth.authorized) { 
+            //Admin auth successful
+            const oldType = req.params.type;
+            const {newType, newColor} = req.body;
+            const alreadyIn = await categories.findOne({$or: [ { "type" : newType }, { "color" : newColor } ] });
+            if(newType === "" || newColor === "" || alreadyIn){
+                return res.status(401).json({error: "Invalid input values"});
+            }
+            const exists = await categories.find({"type": oldType});
+            if(!exists){
+                return res.status(401).json({message: "Category does not exist"});
+            }
+            const query = {"type" : oldType};
+            const update = {$set : {"type": newType, "color": newColor}};
+            const writeResult1 = await categories.updateOne(query, update);
+            const updateTransactions = {$set: {type: newType}};
+            const writeResult2 = await transactions.updateMany(query, updateTransactions);
+            res.status(200).json({message: "Update Done", count: writeResult2.modifiedCount})
+        } else {
+            res.status(401).json({ error: adminAuth.message})
         }
-        const query = {type: oldType};
-        const update = {$set: {type: newType, color: newColor}};
-        const writeResult1 = await categories.updateOne(query, update);
-        if(writeResult1.nModified !== 1){
-            return res.status(400).json({error: "category not found"});
-        }
-        const updateTransactions = {$set: {type: newType}};
-        const writeResult2 = await transactions.updateMany(query, updateTransactions);
-        res.status(200).json({message: "Update Done", count: writeResult2.nModified})
-      } else {
-        res.status(401).json({ error: adminAuth.message})
-      }
 
     } catch (error) {
         res.status(400).json({ error: error.message })
@@ -78,15 +79,16 @@ export const deleteCategory = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" }); // unauthorized
         }
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-        if (adminAuth.authorized) {
+        if (adminAuth.authorized) { 
         //Admin auth successful
             const types = req.body
-            const inDB = await categories.find({type: {$in: types}}).toArray();
+            const inDB = await categories.find({type: {$in: types}});
             if(types.length != inDB.length){
                 return res.status(400).json({ message: "Category doesn't exist" });
             }
             const result = await categories.deleteMany({type: {$in: types}});
-            res.status(200).json({message: "Deletion successful", count: result.deletedCount});
+            const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: "investment"}});
+            res.status(200).json({message: "Deletion successful", count: writeResult2.modifiedCount});
         } else {
             res.status(401).json({ error: adminAuth.message})
         }
