@@ -196,7 +196,7 @@ export const getTransactionsByUser = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
         const isUserPresent = await User.find({username: req.params.username});
-        if(isUserPresent.count === 0){
+        if(!isUserPresent){
             return res.status(400).json({error: "User not found"});
         } 
         //Distinction between route accessed by Admins or Regular users for functions that can be called by both
