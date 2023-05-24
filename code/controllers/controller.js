@@ -269,20 +269,6 @@ export const getTransactionsByUser = async (req, res) => {
                 return res.status(401).json({ message: "Unauthorized" });
             }
         }
-        else if((pathComponents[1] == "users" && pathComponents[3] == "transactions") && req.params.username==path[2] && (userAuth||adminAuth))
-        {
-            transactions.findOne({ username: pathComponents[1]}, function(err, result) {
-                if (err) {
-                  console.error('Error finding user:', err);
-                  res.status(401).json({ error: "User not found"})
-                }
-                else{
-                    console.log('User exists:', result);
-                    result}             
-                                 
-        });
-        }
-        throw new Error("Authorization problem");
     } catch (error) {
         res.status(500).json({error: err.message})    
     }
