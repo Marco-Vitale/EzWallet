@@ -9,7 +9,25 @@ import jwt from 'jsonwebtoken'
  * @throws an error if the query parameters include `date` together with at least one of `from` or `upTo`
  */
 export const handleDateFilterParams = (req) => {
-    return {cause: "void"}
+    const date = req.query.date;
+    const from = req.query.from;
+    const upTo = req.query.upTo;
+    if(date && (from || upTo)){
+        throw new Error("filter params inconsistency");
+    }
+    if(date){
+        return {date: date};
+    }else if(from){
+        if(upTo){
+            return {$and: [{date: {$gte: from}}, {date: {$lte: upTo}}]};
+        }else{
+            return {date: {$gte: date}};
+        }
+    }else if(upTo){
+        return {date: {$lte: date}};
+    }else{
+        return {};
+    }
 }
 
 /**
@@ -169,6 +187,11 @@ export const verifyAuth = (req, res, info) => {
     }
 }
 
+export const verifyEmail = (mail) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return regex.test(mail);
+}
+
 
 /**
  * Handle possible amount filtering options in the query parameters for getTransactionsByUser when called by a Regular user.
@@ -178,9 +201,18 @@ export const verifyAuth = (req, res, info) => {
  *  Example: {amount: {$gte: 100}} returns all transactions whose `amount` parameter is greater or equal than 100
  */
 export const handleAmountFilterParams = (req) => {
-}
+    const min = req.query.min;
+    const max = req.query.max;
 
-export const verifyEmail = (mail) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regex.test(mail);
+    if(min){
+        if(max){
+            return {$and: [{amount: {$lte: max}}, {amount: {$gte: min}}]};
+        }else{
+            return {amount: {$gte: min}};
+        }
+    }else if(max){
+        return {amount: {$lte: max}};
+    }else{
+        return {};
+    }
 }
