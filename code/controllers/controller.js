@@ -164,11 +164,11 @@ export const getAllTransactions = async (req, res) => {
     try {
         const cookie = req.cookies
         if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+            return res.status(401).json({ error: "Unauthorized" }) // unauthorized
         }
         
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-        if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+        if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
 
         /**
          * MongoDB equivalent to the query "SELECT * FROM transactions, categories WHERE transactions.type = categories.type"
@@ -185,7 +185,7 @@ export const getAllTransactions = async (req, res) => {
             { $unwind: "$categories_info" }
         ]).then((result) => {
             let data = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-            res.json(data);
+            res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
         }).catch(error => { throw (error) })
     } catch (error) {
         res.status(500).json({error: err.message})    

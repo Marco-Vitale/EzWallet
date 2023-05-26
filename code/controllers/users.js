@@ -1,6 +1,6 @@
 import { Group, User } from "../models/User.js";
 import { transactions } from "../models/model.js";
-import { verifyAuth } from "./utils.js";
+import { verifyAuth, verifyEmail } from "./utils.js";
 import jwt from 'jsonwebtoken'
 
 /**
@@ -73,14 +73,21 @@ export const createGroup = async (req, res) => {
 
         const cookie = req.cookies
         if (!cookie.accessToken || !cookie.refreshToken) {
-            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+            return res.status(401).json({ error: "Unauthorized" }) // unauthorized
         }
+
+        const userAuth = verifyAuth(req, res, { authType: "Simple"})
+        if(!userAuth) return res.status(401).json({error: userAuth.cause})
 
         const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
       
         const {name, memberEmails} = req.body
+        if(!name || !memberEmails) return res.status(400).json({error: "Missing parameters"})
+
+        if(name=="") return res.status(400).json({error: "Name cannot be an empty string"})
+
         const existingGroup = await Group.findOne({ name: req.body.name });
-        if (existingGroup) return res.status(400).json({ message: "already existing group with the same name" });
+        if (existingGroup) return res.status(400).json({ error: "already existing group with the same name" });
 
         //3 Arrays in which i'll save the memberEmails according to their presence
 
@@ -95,18 +102,21 @@ export const createGroup = async (req, res) => {
         const inAGroup = await Group.findOne({ members: { $elemMatch: { email: decodedAccessToken.email }}})
 
         if(inAGroup){
-          return res.status(400).json({ message: "You are already part of a group!"});
+          return res.status(400).json({ error: "You are already part of a group!"});
         }else{
           const calleeUser = await User.findOne({ email: decodedAccessToken.email });
           if(calleeUser){
             members.push(decodedAccessToken.email)
             membersDB.push({ email: decodedAccessToken.email, user: calleeUser._id });
           }else{
-            return res.status(400).json({ message: "Unexpected error"});
+            return res.status(400).json({ error: "Unexpected error"});
           }
         }
 
         for(const mail of memberEmails){
+
+          if(!verifyEmail(mail)) return res.status(400).json({error: "Something's wrong with memberemails"})
+
           const present = await User.findOne({ email: mail });
           if(present){
             const inAGroup = await Group.findOne({ members: { $elemMatch: { email: mail }}})
@@ -121,17 +131,17 @@ export const createGroup = async (req, res) => {
           }
         }
 
-        if(members.length === 0) return res.status(400).json({ message: "all the `memberEmails` either do not exist or are already in a group" }); 
+        if(members.length === 0) return res.status(400).json({ error: "all the `memberEmails` either do not exist or are already in a group" }); 
 
         const newGroup = await Group.create({
           name: name,
           members: membersDB
         });
 
-        res.status(200).json({ group: { name: name, members: members }, alreadyInGroup, membersNotFound });
+        res.status(200).json({data: {group: { name: name, members: members }, alreadyInGroup, membersNotFound }, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
     } catch (err) {
-        res.status(500).json(err.message)
+        res.status(500).json({error: err.message})
     }
 }
   
@@ -149,19 +159,19 @@ export const createGroup = async (req, res) => {
 export const getGroups = async (req, res) => {
     try {
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-      if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+      if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
 
-      //!! IN QUESTO MOMENTO VIENE RITORNATO ANCHE L'ID PER OGNI MEMBER.. DA TOGLIERE?
-      
       const groups = await Group.find();
       if(groups){
         const arrayret = []
+
         for(const g of groups){
-          arrayret.push({name: g.name, members: g.members})
+          const members = g.members.map((member) => ({email: member.email}));
+          arrayret.push({name: g.name, members: members})
         }
         res.status(200).json({data: arrayret, refreshedTokenMessage: res.locals.refreshedTokenMessage});
       }else{
-        res.status(200).json([]);
+        res.status(200).json({data: [], refreshedTokenMessage: res.locals.refreshedTokenMessage});
       }
     } catch (err) {
       res.status(500).json({error: err.message})    
@@ -372,11 +382,14 @@ export const deleteGroup = async (req, res) => {
       if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
 
       const {name} = req.body
+
+      if(!name || name=="") return res.status(400).json({error: "Missing the name of the group"})
+
       const existingGroup = await Group.findOne({ name: req.body.name });
-      if (!existingGroup) return res.status(401).json({ message: "The group does not exist!" });
+      if (!existingGroup) return res.status(400).json({ message: "The group does not exist!" });
 
       const del = await Group.findOneAndDelete({ name: name }
-      ).then(res.status(200).json({message: "The group has been deleted!"}))
+      ).then(res.status(200).json({data: {message: "The group has been deleted!"}, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
     } catch (err) {
       res.status(500).json({error: err.message})    
     }

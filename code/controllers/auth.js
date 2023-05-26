@@ -14,15 +14,17 @@ export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
+        if(!username || !email || !password) return res.status(400).json({error: "Missing parameters"})
+
         if(!verifyEmail(email)){
-            return res.status(400).json({message: "The email format is not valid!"})
+            return res.status(400).json({error: "The email format is not valid!"})
         }
 
         const existingMail = await User.findOne({ email: req.body.email });
-        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+        if (existingMail) return res.status(400).json({ error: "The mail is already used!" });
 
         const existingUser = await User.findOne({ username: req.body.username });
-        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+        if (existingUser) return res.status(400).json({ error: "The username is already used!" });
         
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
@@ -30,7 +32,7 @@ export const register = async (req, res) => {
             email,
             password: hashedPassword,
         });
-        res.status(200).json('user added succesfully');
+        res.status(200).json({data: {message: 'User added succesfully'}});
     } catch (err) {
         res.status(500).json({error: err.message})    
     }
@@ -50,15 +52,17 @@ export const registerAdmin = async (req, res) => {
         
         const { username, email, password } = req.body
 
+        if(!username || !email || !password) return res.status(400).json({error: "Missing parameters"})
+
         if(!verifyEmail(email)){
-            return res.status(400).json({message: "The email format is not valid!"})
+            return res.status(400).json({error: "The email format is not valid!"})
         }
 
         const existingMail = await User.findOne({ email: req.body.email });
-        if (existingMail) return res.status(400).json({ message: "The mail is already used!" });
+        if (existingMail) return res.status(400).json({ error: "The mail is already used!" });
 
         const existingUser = await User.findOne({ username: req.body.username });
-        if (existingUser) return res.status(400).json({ message: "The username is already used!" });
+        if (existingUser) return res.status(400).json({ error: "The username is already used!" });
 
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
@@ -67,7 +71,7 @@ export const registerAdmin = async (req, res) => {
             password: hashedPassword,
             role: "Admin"
         });
-        res.status(200).json('admin added succesfully');
+        res.status(200).json({data: {message: 'User added succesfully'}});
     } catch (err) {
         res.status(500).json({error: err.message})    
     }
