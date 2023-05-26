@@ -241,12 +241,10 @@ export const addToGroup = async (req, res) => {
 
       const newMembers = req.body;
       // check if the body is correct
-      console.log(!Array.isArray(newMembers), newMembers.length);
       if (!Array.isArray(newMembers) || newMembers.length==0) res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
       // check if the passed emails are in the correct format
       for (const email of newMembers) {
-        console.log(email, verifyEmail(email));
         if(!verifyEmail(email)) res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
       }
 
@@ -303,8 +301,14 @@ export const addToGroup = async (req, res) => {
     an array that lists the `notInGroup` members (members whose email is not in the group) and an array that lists 
     the `membersNotFound` (members whose email does not appear in the system)
   - Optional behavior:
-    - error 400 is returned if the group does not exist
-    - error 400 is returned if all the `memberEmails` either do not exist or are not in the group
+    - error 400 is returned if the request body does not contain all the necessary attributes
+    - error 400 is returned if the group name passed as a route parameter does not represent a group in the database
+    - error 400 is returned if all the provided emails represent users that do not belong to the group or do not exist in the database
+    - error 400 is returned if at least one of the emails is not in a valid email format
+    - error 400 is returned if at least one of the emails is an empty string
+    - error 400 is returned if the group contains only one member before deleting any user
+    - error 401 is returned if called by an authenticated user who is not part of the group (authType = Group) if the route is `api/groups/:name/remove`
+    - error 401 is returned if called by an authenticated user who is not an admin (authType = Admin) if the route is `api/groups/:name/pull`
  */
 export const removeFromGroup = async (req, res) => {
   try {
@@ -314,11 +318,23 @@ export const removeFromGroup = async (req, res) => {
 
     const emails = retrieveGroup.members.map((member) => member.email);
 
-    const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
-    const adminAuth = verifyAuth(req, res, { authType: "Admin" });
-    if (!auth.authorized && !adminAuth.authorized) res.status(400).json({error: auth.cause});
+    if (req.url.includes("pull")){
+      const adminAuth = verifyAuth(req, res, { authType: "Admin" });
+      if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause}); 
+    } else {
+      const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
+      if (!auth.authorized) res.status(401).json({error: auth.cause});
+    }
 
     const selectedMembers = req.body;
+    // check if the body is correct
+    if (!Array.isArray(selectedMembers) || selectedMembers.length==0) res.status(400).json({error: "Body doesn't contain all requested attributes"});
+
+    // check if the passed emails are in the correct format
+    for (const email of selectedMembers) {
+      if(!verifyEmail(email)) res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
+    }
+
     const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
     const removedMembers = [];
     const membersNotFound = [];
@@ -343,6 +359,11 @@ export const removeFromGroup = async (req, res) => {
       if(duplicate) continue;
         
       removedMembers.push(userData);
+      if ((members.length - removedMembers.length) == 0) {
+        res.status(400).json({error: `The member ${email} cannot be removed from ${groupName}, it is the last member.`});
+        break;
+      }
+
       const result = await Group.updateOne({ name: groupName }, { $pull: { members: userData } });
     }
 
