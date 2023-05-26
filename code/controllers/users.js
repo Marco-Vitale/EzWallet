@@ -29,25 +29,23 @@ export const getUsers = async (req, res) => {
   - Request Body Content: None
   - Response `data` Content: An object having attributes `username`, `email` and `role`.
   - Optional behavior:
-    - error 400 is returned if the user is not found in the system
+    - error 400 is returned if the username passed as the route parameter does not represent a user in the database
+    - error 401 is returned if called by an authenticated user who is neither the same user as the one in the route parameter (authType = User) nor an admin (authType = Admin)
  */
 export const getUser = async (req, res) => {
   try {
     const name = req.params.username;
     let data = undefined;
 
-    const userAuth = verifyAuth(req, res, { authType: "User", username: req.params.username })
-    if (userAuth.authorized) {
+    const userAuth = verifyAuth(req, res, { authType: "User", username: req.params.username });
+    const adminAuth = verifyAuth(req, res, { authType: "Admin" });
+
+    if (userAuth.authorized || adminAuth.authorized) {
       const user = await User.findOne({ username : name });
+      if (!user) res.status(400).json({ error: "User not found"});
       data = {username: user.username, email: user.email, role: user.role};
     } else {
-      const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-      if (adminAuth.authorized) {
-        const user = await User.findOne({ username : name });
-        data = {username: user.username, email: user.email, role: user.role};
-      } else {
-        res.status(400).json({ error: adminAuth.cause})
-      }
+      res.status(401).json({ error: adminAuth.cause})
     }
 
     res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
@@ -161,6 +159,7 @@ export const getGroups = async (req, res) => {
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
       if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
 
+
       const groups = await Group.find();
       if(groups){
         const arrayret = []
@@ -185,6 +184,7 @@ export const getGroups = async (req, res) => {
     `members` of the group
   - Optional behavior:
     - error 400 is returned if the group does not exist
+    - error 401 is returned if called by an authenticated user who is neither part of the group (authType = Group) nor an admin (authType = Admin)
  */
 export const getGroup = async (req, res) => {
     try {
@@ -196,7 +196,7 @@ export const getGroup = async (req, res) => {
 
       const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
       const adminAuth = verifyAuth(req, res, { authType: "Admin" });
-      if (!auth.authorized && !adminAuth.authorized) res.status(400).json({error: auth.cause});
+      if (!auth.authorized && !adminAuth.authorized) res.status(401).json({error: auth.cause});
 
       const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
 
@@ -215,22 +215,41 @@ export const getGroup = async (req, res) => {
     an array that lists the `alreadyInGroup` members (members whose email is already present in a group) and an array that lists 
     the `membersNotFound` (members whose email does not appear in the system)
   - Optional behavior:
-    - error 400 is returned if the group does not exist
-    - error 400 is returned if all the `memberEmails` either do not exist or are already in a group
+    - error 400 is returned if the request body does not contain all the necessary attributes
+    - error 400 is returned if the group name passed as a route parameter does not represent a group in the database
+    - error 400 is returned if all the provided emails represent users that are already in a group or do not exist in the database
+    - error 400 is returned if at least one of the member emails is not in a valid email format
+    - error 400 is returned if at least one of the member emails is an empty string
+    - error 401 is returned if called by an authenticated user who is not part of the group (authType = Group) if the route is `api/groups/:name/add`
+    - error 401 is returned if called by an authenticated user who is not an admin (authType = Admin) if the route is `api/groups/:name/insert`
  */
 export const addToGroup = async (req, res) => {
     try {
-      const groupName = req.params.name; 
+      const groupName = req.params.name;
       const retrieveGroup = await Group.findOne({ name: groupName });
       if (!retrieveGroup) res.status(400).json({error: "Group not found"});
 
-      const emails = retrieveGroup.members.map((member) => member.email);
+      const emails = retrieveGroup.members.map((member) => member.email); // retrieve the current emails of selected group
 
-      const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
-      const adminAuth = verifyAuth(req, res, { authType: "Admin" });
-      if (!auth.authorized && !adminAuth.authorized) res.status(400).json({error: auth.cause});
+      if (req.url.includes("insert")){
+        const adminAuth = verifyAuth(req, res, { authType: "Admin" });
+        if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause}); 
+      } else {
+        const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
+        if (!auth.authorized) res.status(401).json({error: auth.cause});
+      }
 
       const newMembers = req.body;
+      // check if the body is correct
+      console.log(!Array.isArray(newMembers), newMembers.length);
+      if (!Array.isArray(newMembers) || newMembers.length==0) res.status(400).json({error: "Body doesn't contain all requested attributes"});
+
+      // check if the passed emails are in the correct format
+      for (const email of newMembers) {
+        console.log(email, verifyEmail(email));
+        if(!verifyEmail(email)) res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
+      }
+
       const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
       const membersNotFound = [];
       const alreadyInGroup = [];
