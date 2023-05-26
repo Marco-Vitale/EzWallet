@@ -15,7 +15,7 @@ export const getUsers = async (req, res) => {
     const adminAuth = verifyAuth(req, res, { authType: "Admin" })
     if (adminAuth.authorized) {
       const users = (await User.find()).map(user => ({username: user.username, email: user.email, role: user.role}));
-      res.status(200).json(users);
+      res.status(200).json({data: users, refreshedTokenMessage: res.locals.refreshedTokenMessage});
     } else {
       res.status(400).json({ error: adminAuth.cause})
     }
@@ -50,7 +50,7 @@ export const getUser = async (req, res) => {
       }
     }
 
-    res.status(200).json(data);
+    res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
   } catch (error) {
     res.status(500).json({error: err.message})  
@@ -159,7 +159,7 @@ export const getGroups = async (req, res) => {
         for(const g of groups){
           arrayret.push({name: g.name, members: g.members})
         }
-        res.status(200).json(arrayret);
+        res.status(200).json({data: arrayret, refreshedTokenMessage: res.locals.refreshedTokenMessage});
       }else{
         res.status(200).json([]);
       }
@@ -185,11 +185,12 @@ export const getGroup = async (req, res) => {
       const emails = retrieveGroup.members.map((member) => member.email);
 
       const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
-      if (!auth.authorized) res.status(400).json({error: auth.cause});
+      const adminAuth = verifyAuth(req, res, { authType: "Admin" });
+      if (!auth.authorized && !adminAuth.authorized) res.status(400).json({error: auth.cause});
 
       const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
 
-      res.status(200).json({data: {name: retrieveGroup.name, members: members}});
+      res.status(200).json({data: {name: retrieveGroup.name, members: members}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
   
       } catch (err) {
         res.status(500).json({error: err.message})      
@@ -216,7 +217,8 @@ export const addToGroup = async (req, res) => {
       const emails = retrieveGroup.members.map((member) => member.email);
 
       const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
-      if (!auth.authorized) res.status(400).json({error: auth.cause});
+      const adminAuth = verifyAuth(req, res, { authType: "Admin" });
+      if (!auth.authorized && !adminAuth.authorized) res.status(400).json({error: auth.cause});
 
       const newMembers = req.body;
       const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
@@ -248,12 +250,15 @@ export const addToGroup = async (req, res) => {
       if (!userData) res.status(400).json({error: "Passed emails do not exist or are already in a group"});
 
       res.status(200).json({
-        'group': {
-          name: groupName,
-          members: members
+        data: {
+          'group': {
+            name: groupName,
+            members: members
+          },
+          'alreadyInGroup': alreadyInGroup,
+          'membersNotFound': membersNotFound
         },
-        'alreadyInGroup': alreadyInGroup,
-        'membersNotFound': membersNotFound
+        refreshedTokenMessage: res.locals.refreshedTokenMessage
       });
 
     } catch (err) {
@@ -281,7 +286,8 @@ export const removeFromGroup = async (req, res) => {
     const emails = retrieveGroup.members.map((member) => member.email);
 
     const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
-    if (!auth.authorized) res.status(400).json({error: auth.cause});
+    const adminAuth = verifyAuth(req, res, { authType: "Admin" });
+    if (!auth.authorized && !adminAuth.authorized) res.status(400).json({error: auth.cause});
 
     const selectedMembers = req.body;
     const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
@@ -320,12 +326,15 @@ export const removeFromGroup = async (req, res) => {
     }
 
     res.status(200).json({
-      'group': {
-        name: groupName,
-        members: actualMembers
+      data: {
+        'group': {
+          name: groupName,
+          members: actualMembers
+        },
+        'noInGroup': noInGroup,
+        'membersNotFound': membersNotFound
       },
-      'noInGroup': noInGroup,
-      'membersNotFound': membersNotFound
+      refreshedTokenMessage: res.locals.refreshedTokenMessage
     });
 
   } catch (err) {
