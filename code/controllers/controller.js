@@ -1,5 +1,5 @@
 import { categories, transactions } from "../models/model.js";
-import { Group, User } from "../models/User.js";
+import { Group, User, UserSchema } from "../models/User.js";
 import { getGroup } from "./users.js";
 import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./utils.js";
 import {getTransacitionByUserWrapper, getGroupWrapper} from "./dbInteraction.js";
@@ -385,32 +385,46 @@ export const getTransactionsByGroup = async (req, res) => {
     try {
         console.log("I'm in!!!"); 
         const groupName = req.params.name; 
-        Group.aggregate([
-            {
-            $match: {
-                name: req.params.username                   
-                }
-            },
-            
-            {
-                
-                $lookup: {
-                    from: "transactions",
-                    localField: "members.email",
-                    foreignField: "transaction.",
-                    as: "categories_info"
-                }
-            },
-            { $unwind: "$categories_info" }
-        ]).then((result) => {
-            let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
-            res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
-        }).catch(error => { throw (error) })
-             
-                
-    
         
-        return res.status(200).json({message: "Dumb response"});
+        //Get group email   
+        const retrieveGroup = (await Group.findOne({ name: groupName }));
+        if (!retrieveGroup) res.status(401).json({error: "Group not found"});
+     
+        let userList = retrieveGroup.members.map((member) => member._id);
+        console.log(userList);
+
+        const userArray = (await User.find()).map(u => (u.username));
+
+        console.log(userArray);
+
+          // const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
+       // if (!auth.authorized) res.status(400).json({error: auth.cause});
+
+        transactions.aggregate([
+        {
+        $match: {
+            username: {$in: userArray}
+        }
+        },
+        
+        {
+            
+            $lookup: {
+                from: "categories",
+                localField: "type",
+                foreignField: "type",
+                as: "categories_info"
+            }
+        },
+        { $unwind: "$categories_info" }
+        ]).then((result) => {
+        
+        let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
+        res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
+    }).catch(error => { throw (error) })
+
+        
+
     } catch (error) {
         res.status(500).json({error: err.message})  
     }
