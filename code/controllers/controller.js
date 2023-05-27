@@ -383,32 +383,53 @@ export const getTransactionsByUserByCategory = async (req, res) => {
 export const getTransactionsByGroup = async (req, res) => {
     console.log(req);
     try {
-        console.log("I'm in!!!"); 
+    
+
+        //ADMIN route: /transactions/groups/:name
+        if(req.url.indexOf("/transactions/groups")>=0){
+            const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
+            if(!adminAuth.authorized){
+                return res.status(401).json({ error: "Needed admin privileges" });
+            }
+        }  
+
+        //REGULAR route: /groups/:name/transactions (check for group)
+        else if(req.url.indexOf("/groups/"+req.params.name+"/transactions")>=0){
+            const userAuth = verifyAuth(req, res, {authType: "Group"})
+            if(!userAuth.authorized){
+                return res.status(401).json({ error: "Forbidden operation: you are not in the group" });
+            }
+        }
+        else{
+            return res.status(400).json({ error: "Bad request" });
+        }
+          
+
         const groupName = req.params.name; 
-        
-        //Get group email   
-        const retrieveGroup = (await Group.findOne({ name: groupName }));
+
+        //Get user list form group
+        const retrieveGroup = (await Group.findOne({ name: groupName })); 
         if (!retrieveGroup) res.status(401).json({error: "Group not found"});
      
-        let userList = retrieveGroup.members.map((member) => member._id);
-        console.log(userList);
-
-        const userArray = (await User.find()).map(u => (u.username));
-
+        let userList = retrieveGroup.members.map((member) => member.user);
+        
+        const userArray = await User.find({ _id: { $in: userList} }).select('username')
+        .lean();
+      
+        const usernames = userArray.map((user) => user.username);
         console.log(userArray);
 
-          // const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
+       // const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
        // if (!auth.authorized) res.status(400).json({error: auth.cause});
 
         transactions.aggregate([
         {
         $match: {
-            username: {$in: userArray}
+            username: {$in: usernames}
         }
         },
         
         {
-            
             $lookup: {
                 from: "categories",
                 localField: "type",
