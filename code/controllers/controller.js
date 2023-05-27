@@ -383,8 +383,29 @@ export const getTransactionsByUserByCategory = async (req, res) => {
 export const getTransactionsByGroup = async (req, res) => {
     console.log(req);
     try {
-        console.log("I'm in!!!")
-        console.log(req.params.name);
+        console.log("I'm in!!!"); 
+        const groupName = req.params.name; 
+        Group.aggregate([
+            {
+            $match: {
+                name: req.params.username                   
+                }
+            },
+            
+            {
+                
+                $lookup: {
+                    from: "transactions",
+                    localField: "members.email",
+                    foreignField: "transaction.",
+                    as: "categories_info"
+                }
+            },
+            { $unwind: "$categories_info" }
+        ]).then((result) => {
+            let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
+            res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
+        }).catch(error => { throw (error) })
              
                 
     
