@@ -381,7 +381,7 @@ export const getTransactionsByUserByCategory = async (req, res) => {
     - empty array must be returned if there are no transactions made by the group
  */
 export const getTransactionsByGroup = async (req, res) => {
-    console.log(req);
+   
     try {
     
 
@@ -461,8 +461,74 @@ export const getTransactionsByGroup = async (req, res) => {
  */
 export const getTransactionsByGroupByCategory = async (req, res) => {
     try {
+    
+        const groupName = req.params.name;
+        const category = req.params.category;
+
+         //ADMIN route: /transactions/groups/:name/category/:category
+         if(req.url.indexOf("transactions/groups/"+groupName+"/category/"+category)>=0){
+             const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
+             if(!adminAuth.authorized){
+                 return res.status(401).json({ error: "Needed admin privileges" });
+             }
+         } 
+         //REGULAR route: /groups/:name/transactions/category/:category
+         else if(req.url.indexOf("/groups/"+groupName+"/transactions/category/"+category)>=0){
+             const userAuth = verifyAuth(req, res, {authType: "Group"})
+             if(!userAuth.authorized){
+                 return res.status(401).json({ error: "Forbidden operation: you are not in the group" });
+             }
+         }
+         else{
+             return res.status(400).json({ error: "Bad request" });
+         }
+          
+
+        
+
+        //Get user list form group
+        const retrieveGroup = (await Group.findOne({ name: groupName })); 
+        if (!retrieveGroup) res.status(401).json({error: "Group not found"});
+     
+        let userList = retrieveGroup.members.map((member) => member.user);
+        
+        const userArray = await User.find({ _id: { $in: userList} }).select('username')
+        .lean();
+      
+        const usernames = userArray.map((user) => user.username);
+        console.log(userArray);
+       
+    
+        transactions.aggregate([
+        {
+        $match: {
+
+            $and: [
+                { username: {$in: usernames} },
+                { type: req.params.category }
+              ]
+            }            
+        }
+        ,
+        {
+            $lookup: {
+                from: "categories",
+                localField: "type",
+                foreignField: "type",
+                as: "categories_info"
+            }
+        },
+        { $unwind: "$categories_info" }
+        ]).then((result) => {
+        
+        let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
+        res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
+    }).catch(error => { throw (error) })
+
+        
+
     } catch (error) {
-        res.status(500).json({error: err.message})   
+        res.status(500).json({error: err.message})  
     }
 }
 
