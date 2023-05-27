@@ -1,7 +1,8 @@
 import { categories, transactions } from "../models/model.js";
 import { Group, User } from "../models/User.js";
+import { getGroup } from "./users.js";
 import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./utils.js";
-
+import {getTransacitionByUserWrapper, getGroupWrapper} from "./dbInteraction.js";
 /**
  * Create a new category
   - Request Body Content: An object having attributes `type` and `color`
@@ -9,6 +10,7 @@ import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./
  */
 export const createCategory = (req, res) => {
     try {
+        
         const cookie = req.cookies
         if (!cookie.accessToken) {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
@@ -209,7 +211,7 @@ export const getTransactionsByUser = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
         const isUserPresent = await User.find({username: req.params.username});
-        if(!isUserPresent){
+        if(!isUserPresent.cp){
             return res.status(400).json({error: "User not found"});
         } 
         //Distinction between route accessed by Admins or Regular users for functions that can be called by both
@@ -298,62 +300,77 @@ export const getTransactionsByUser = async (req, res) => {
     - error 400 is returned if the user or the category does not exist
  */
 export const getTransactionsByUserByCategory = async (req, res) => {
-    try {
-        //Distinction between route accessed by Admins or Regular users for functions that can be called by both
-        //and different behaviors and access rights:
-        //ADMIN: all users transaction  (function called in "api/transactions/users/:username")
-        //REGULAR: only logged user (function called in "api/users/:username/transactions")
+    try{
 
-        //Check for authentication
+        const user = req.params.username;
+        const category = req.params.category; 
         const cookie = req.cookies
         if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }); // unauthorized
+            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
-        console.log("In transaction function "); 
 
-        //URL parse
-        const pathname = req.url;
-        console.log(pathname); 
-
-        const user=req.params.username;
-        const category=req.params.category; 
-        let trans = [];
-
+        const isUserPresent = await User.findOne({username: user});
+        if(!isUserPresent){
+            return res.status(400).json({error: "User not found"});
+        } 
         
+        const isCategoryPresent = await categories.findOne({type: category});
+        if(!isCategoryPresent){
+            return res.status(400).json({error: "Category not found"});
+        }
         
-        //ADMIN request
+
+        //ADMIN check: /transactions/users/:username/category/:category
         if(req.url.indexOf("/transactions/users/"+user+"/category/"+category)>=0){
             const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
             if(!adminAuth.authorized){
-                return res.status(401).json({ message: "Needed admin privileges" });
+                return res.status(401).json({ error: "Needed admin privileges" });
             }
-
-
-        }
-        //REGULAR request
+        }  
+        //REGULAR check: /users/:username/transactions/category/:category
         else if(req.url.indexOf("/users/"+user+"/transactions/category/"+category)>=0){
             const userAuth = verifyAuth(req, res, {authType: "User", username: user})
             if(!userAuth.authorized){
-                return res.status(401).json({ message: "Forbidden operation: not possible to make split requests" });
+                return res.status(401).json({ error: "Forbidden operation: not possible to make split requests" });
             }
         }
         else{
-            return res.status(400).json({ message: "Bad request" });
+            return res.status(400).json({ error: "Bad request" });
         }
-        
-        getTransactionsByUser(req, result)
-        
-        
-
-
-
-
-        
-        }
-     catch (error) {
+            
+        transactions.aggregate([
+            {
+            $match: {
+                $and: [
+                    { username: req.params.username },
+                    { type: req.params.category }
+                  ]
+                }
+            },
+            
+            {
+                
+                $lookup: {
+                    from: "categories",
+                    localField: "type",
+                    foreignField: "type",
+                    as: "categories_info"
+                }
+            },
+            { $unwind: "$categories_info" }
+        ]).then((result) => {
+            let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
+            res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
+        }).catch(error => { throw (error) })
+    }  
+    
+    
+    
+    catch (error) {
         res.status(500).json({error: err.message})    
     }
 }
+
 
 /**
  * Return all transactions made by members of a specific group
@@ -364,9 +381,17 @@ export const getTransactionsByUserByCategory = async (req, res) => {
     - empty array must be returned if there are no transactions made by the group
  */
 export const getTransactionsByGroup = async (req, res) => {
+    console.log(req);
     try {
+        console.log("I'm in!!!")
+        console.log(req.params.name);
+             
+                
+    
+        
+        return res.status(200).json({message: "Dumb response"});
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: err.message})  
     }
 }
 
