@@ -306,7 +306,7 @@ export const getTransactionsByUserByCategory = async (req, res) => {
         const category = req.params.category; 
         const cookie = req.cookies
         if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
+            return res.status(401).json({ error: "Unauthorized" }) // unauthorized
         }
 
         const isUserPresent = await User.findOne({username: user});
@@ -383,7 +383,17 @@ export const getTransactionsByUserByCategory = async (req, res) => {
 export const getTransactionsByGroup = async (req, res) => {
    
     try {
-    
+        
+        const isUserPresent = await User.findOne({username: user});
+        if(!isUserPresent){
+            return res.status(400).json({error: "User not found"});
+        } 
+
+        const groupName = req.params.name; 
+
+        //Get user list form group
+        const retrieveGroup = (await Group.findOne({ name: groupName })); 
+        if (!retrieveGroup) res.status(400).json({error: "Group not found"});
 
         //ADMIN route: /transactions/groups/:name
         if(req.url.indexOf("/transactions/groups")>=0){
@@ -404,12 +414,7 @@ export const getTransactionsByGroup = async (req, res) => {
             return res.status(400).json({ error: "Bad request" });
         }
           
-
-        const groupName = req.params.name; 
-
-        //Get user list form group
-        const retrieveGroup = (await Group.findOne({ name: groupName })); 
-        if (!retrieveGroup) res.status(401).json({error: "Group not found"});
+       
      
         let userList = retrieveGroup.members.map((member) => member.user);
         
@@ -465,6 +470,16 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         const groupName = req.params.name;
         const category = req.params.category;
 
+
+        const isUserPresent = await User.findOne({username: user});
+        if(!isUserPresent){
+            return res.status(400).json({error: "User not found"});
+        }
+
+
+        const retrieveGroup = (await Group.findOne({ name: groupName })); 
+        if (!retrieveGroup) res.status(401).json({error: "Group not found"});
+
          //ADMIN route: /transactions/groups/:name/category/:category
          if(req.url.indexOf("transactions/groups/"+groupName+"/category/"+category)>=0){
              const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
@@ -484,11 +499,10 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
          }
           
 
-        
+         
 
         //Get user list form group
-        const retrieveGroup = (await Group.findOne({ name: groupName })); 
-        if (!retrieveGroup) res.status(401).json({error: "Group not found"});
+        
      
         let userList = retrieveGroup.members.map((member) => member.user);
         
