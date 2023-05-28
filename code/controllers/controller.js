@@ -2,7 +2,7 @@ import { categories, transactions } from "../models/model.js";
 import { Group, User, UserSchema } from "../models/User.js";
 import { getGroup } from "./users.js";
 import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./utils.js";
-import {getTransacitionByUserWrapper, getGroupWrapper} from "./dbInteraction.js";
+
 /**
  * Create a new category
   - Request Body Content: An object having attributes `type` and `color`
