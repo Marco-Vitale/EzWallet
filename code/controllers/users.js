@@ -20,7 +20,7 @@ export const getUsers = async (req, res) => {
       res.status(400).json({ error: adminAuth.cause})
     }
   } catch (error) {
-    res.status(500).json({error: err.message})    
+    res.status(500).json({error: error.message})    
   }
 }
 
@@ -51,7 +51,7 @@ export const getUser = async (req, res) => {
     res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
   } catch (error) {
-    res.status(500).json({error: err.message})  
+    res.status(500).json({error: error.message})  
   }
 }
 
@@ -138,8 +138,8 @@ export const createGroup = async (req, res) => {
 
         res.status(200).json({data: {group: { name: name, members: members }, alreadyInGroup, membersNotFound }, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
-    } catch (err) {
-        res.status(500).json({error: err.message})
+    } catch (error) {
+        res.status(500).json({error: error.message})
     }
 }
   
@@ -172,8 +172,8 @@ export const getGroups = async (req, res) => {
       }else{
         res.status(200).json({data: [], refreshedTokenMessage: res.locals.refreshedTokenMessage});
       }
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+    } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
 
@@ -202,8 +202,8 @@ export const getGroup = async (req, res) => {
 
       res.status(200).json({data: {name: retrieveGroup.name, members: members}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
   
-      } catch (err) {
-        res.status(500).json({error: err.message})      
+      } catch (error) {
+        res.status(500).json({error: error.message})      
       }
 }
 
@@ -288,8 +288,8 @@ export const addToGroup = async (req, res) => {
         refreshedTokenMessage: res.locals.refreshedTokenMessage
       });
 
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+    } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
 
@@ -387,8 +387,8 @@ export const removeFromGroup = async (req, res) => {
       refreshedTokenMessage: res.locals.refreshedTokenMessage
     });
 
-  } catch (err) {
-      res.status(500).json({error: err.message})    
+  } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
 
@@ -403,8 +403,8 @@ export const removeFromGroup = async (req, res) => {
  */
 export const deleteUser = async (req, res) => {
     try {
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+    } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
 
@@ -430,7 +430,7 @@ export const deleteGroup = async (req, res) => {
 
       const del = await Group.findOneAndDelete({ name: name }
       ).then(res.status(200).json({data: {message: "The group has been deleted!"}, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+    } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }

@@ -21,7 +21,7 @@ export const createCategory = (req, res) => {
             .then(data => res.json(data))
             .catch(err => { throw err })
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -63,7 +63,7 @@ export const updateCategory = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -102,7 +102,7 @@ export const deleteCategory = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({error: err.message})   
+        res.status(500).json({error: error.message})   
     }
 }
 
@@ -125,7 +125,7 @@ export const getCategories = async (req, res) => {
 
         return res.json(filter)
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -151,7 +151,7 @@ export const createTransaction = async (req, res) => {
             .then(data => res.json(data))
             .catch(err => { throw err })
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -190,7 +190,7 @@ export const getAllTransactions = async (req, res) => {
             res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
         }).catch(error => { throw (error) })
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -287,7 +287,7 @@ export const getTransactionsByUser = async (req, res) => {
         
         //throw new Error("Authorization problem");
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -367,7 +367,7 @@ export const getTransactionsByUserByCategory = async (req, res) => {
     
     
     catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -452,7 +452,7 @@ export const getTransactionsByGroup = async (req, res) => {
         
 
     } catch (error) {
-        res.status(500).json({error: err.message})  
+        res.status(500).json({error: error.message})  
     }
 }
 
@@ -540,7 +540,7 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         
 
     } catch (error) {
-        res.status(500).json({error: err.message})  
+        res.status(500).json({error: error.message})  
     }
 }
 
@@ -576,7 +576,7 @@ export const deleteTransaction = async (req, res) => {
         let data = await transactions.deleteOne({ _id: req.body._id });
         return res.json("deleted");
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }
 
@@ -601,6 +601,6 @@ export const deleteTransactions = async (req, res) => {
             
         return res.json("deleted");
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message})    
     }
 }

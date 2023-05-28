@@ -33,8 +33,8 @@ export const register = async (req, res) => {
             password: hashedPassword,
         });
         res.status(200).json({data: {message: 'User added succesfully'}});
-    } catch (err) {
-        res.status(500).json({error: err.message})    
+    } catch (error) {
+        res.status(500).json({error: error.message})    
     }
 };
 
@@ -72,8 +72,8 @@ export const registerAdmin = async (req, res) => {
             role: "Admin"
         });
         res.status(200).json({data: {message: 'User added succesfully'}});
-    } catch (err) {
-        res.status(500).json({error: err.message})    
+    } catch (error) {
+        res.status(500).json({error: error.message})    
     }
 
 }
@@ -115,7 +115,7 @@ export const login = async (req, res) => {
         res.cookie('refreshToken', refreshToken, { httpOnly: true, domain: "localhost", path: '/api', maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'none', secure: true })
         res.status(200).json({ data: { accessToken: accessToken, refreshToken: refreshToken } })
     } catch (error) {
-        res.status(500).json({error: err.message})
+        res.status(500).json({error: error.message})
     }
 }
 
@@ -139,6 +139,6 @@ export const logout = async (req, res) => {
         const savedUser = await user.save()
         res.status(200).json('logged out')
     } catch (error) {
-        res.status(500).json({error: err.message})
+        res.status(500).json({error: error.message})
     }
 }
