@@ -471,8 +471,8 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         const category = req.params.category;
 
 
-        const isUserPresent = await User.findOne({username: user});
-        if(!isUserPresent){
+        const isGroupPresent = await Group.findOne({name: groupName});
+        if(!isGroupPresent){
             return res.status(400).json({error: "User not found"});
         }
 
@@ -497,9 +497,7 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
          else{
              return res.status(400).json({ error: "Bad request" });
          }
-          
-
-         
+        
 
         //Get user list form group
         
