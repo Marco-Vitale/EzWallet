@@ -65,7 +65,7 @@ describe("getUsers", () => {
       json: jest.fn(),
     }
     const retrievedUsers = [{ username: 'test1', email: 'test1@example.com', password: 'hashedPassword1' }, { username: 'test2', email: 'test2@example.com', password: 'hashedPassword2' }]
-    jest.spyOn(User, "find").mockResolvedValue(retrievedUsers)
+    jest.spyOn(User, "find").mockResolvedValue(retrievedUsers) //Quando viene chiamato find su User viene simulata la risposta di un valore dato ovvero il retrievedUsers
     await getUsers(mockReq, mockRes)
     expect(User.find).toHaveBeenCalled()
     expect(mockRes.status).toHaveBeenCalledWith(200)
