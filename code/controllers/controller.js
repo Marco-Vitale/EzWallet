@@ -384,13 +384,14 @@ export const getTransactionsByGroup = async (req, res) => {
    
     try {
         
-        const isUserPresent = await User.findOne({username: user});
-        if(!isUserPresent){
-            return res.status(400).json({error: "User not found"});
-        } 
+        
 
         const groupName = req.params.name; 
-
+        
+        const isGroupPresent = await Group.findOne({name: groupName});
+        if(!isGroupPresent){
+            return res.status(400).json({error: "User not found"});
+        }
         //Get user list form group
         const retrieveGroup = (await Group.findOne({ name: groupName })); 
         if (!retrieveGroup) res.status(400).json({error: "Group not found"});
@@ -405,7 +406,8 @@ export const getTransactionsByGroup = async (req, res) => {
 
         //REGULAR route: /groups/:name/transactions (check for group)
         else if(req.url.indexOf("/groups/"+req.params.name+"/transactions")>=0){
-            const userAuth = verifyAuth(req, res, {authType: "Group"})
+            const groupEmails = retrieveGroup.members.map((member) => member.email) 
+            const userAuth = verifyAuth(req, res, {authType: "Group", emails: groupEmails})
             if(!userAuth.authorized){
                 return res.status(401).json({ error: "Forbidden operation: you are not in the group" });
             }
@@ -487,9 +489,12 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
                  return res.status(401).json({ error: "Needed admin privileges" });
              }
          } 
+
+        
          //REGULAR route: /groups/:name/transactions/category/:category
          else if(req.url.indexOf("/groups/"+groupName+"/transactions/category/"+category)>=0){
-             const userAuth = verifyAuth(req, res, {authType: "Group"})
+            const groupEmails = retrieveGroup.members.map((member) => member.email) 
+            const userAuth = verifyAuth(req, res, {authType: "Group", emails: groupEmails})
              if(!userAuth.authorized){
                  return res.status(401).json({ error: "Forbidden operation: you are not in the group" });
              }
