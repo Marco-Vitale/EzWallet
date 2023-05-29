@@ -174,11 +174,11 @@ export const verifyAuth = (req, res, info) => {
                     default:
                         return { authorized: false, cause: "Wrong authType inserted" }
                 }
-            } catch (err) {
-                if (err.name === "TokenExpiredError") {
+            } catch (error) {
+                if (error.name === "TokenExpiredError") {
                     return { authorized: false, cause: "Perform login again" }
                 } else {
-                    return { authorized: false, cause: err.name }
+                    return { authorized: false, cause: error.name }
                 }
             }
         } else {

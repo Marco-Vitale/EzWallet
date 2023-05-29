@@ -33,8 +33,8 @@ export const register = async (req, res) => {
             password: hashedPassword,
         });
         res.status(200).json({data: {message: 'User added succesfully'}});
-    } catch (err) {
-        res.status(500).json({error: err.message})    
+    } catch (error) {
+        res.status(500).json({error: error.message})    
     }
 };
 
@@ -72,8 +72,8 @@ export const registerAdmin = async (req, res) => {
             role: "Admin"
         });
         res.status(200).json({data: {message: 'User added succesfully'}});
-    } catch (err) {
-        res.status(500).json({error: err.message})    
+    } catch (error) {
+        res.status(500).json({error: error.message})    
     }
 
 }
@@ -83,11 +83,22 @@ export const registerAdmin = async (req, res) => {
   - Request Body Content: An object having attributes `email` and `password`
   - Response `data` Content: An object with the created accessToken and refreshToken
   - Optional behavior:
-    - error 400 is returned if the user does not exist
+    - error 400 is returned if the request body does not contain all the necessary attributes
+    - error 400 is returned if at least one of the parameters in the request body is an empty string
+    - error 400 is returned if the email in the request body is not in a valid email format
+    - error 400 is returned if the email in the request body does not identify a user in the database
     - error 400 is returned if the supplied password does not match with the one in the database
+
  */
 export const login = async (req, res) => {
     const { email, password } = req.body
+
+    if(!email || !password) return res.status(400).json({error: "Missing parameters"});
+
+    if(!verifyEmail(email)){
+        return res.status(400).json({error: "The email format is not valid!"})
+    }
+
     const cookie = req.cookies
     const existingUser = await User.findOne({ email: email })
     if (!existingUser) return res.status(400).json('please you need to register')
@@ -115,7 +126,7 @@ export const login = async (req, res) => {
         res.cookie('refreshToken', refreshToken, { httpOnly: true, domain: "localhost", path: '/api', maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'none', secure: true })
         res.status(200).json({ data: { accessToken: accessToken, refreshToken: refreshToken } })
     } catch (error) {
-        res.status(500).json({error: err.message})
+        res.status(500).json({error: error.message})
     }
 }
 
@@ -139,6 +150,6 @@ export const logout = async (req, res) => {
         const savedUser = await user.save()
         res.status(200).json('logged out')
     } catch (error) {
-        res.status(500).json({error: err.message})
+        res.status(500).json({error: error.message})
     }
 }

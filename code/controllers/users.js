@@ -20,7 +20,7 @@ export const getUsers = async (req, res) => {
       res.status(400).json({ error: adminAuth.cause})
     }
   } catch (error) {
-    res.status(500).json({error: err.message})    
+    res.status(500).json({error: error.message})    
   }
 }
 
@@ -51,7 +51,7 @@ export const getUser = async (req, res) => {
     res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
   } catch (error) {
-    res.status(500).json({error: err.message})  
+    res.status(500).json({error: error.message})  
   }
 }
 
@@ -138,8 +138,8 @@ export const createGroup = async (req, res) => {
 
         res.status(200).json({data: {group: { name: name, members: members }, alreadyInGroup, membersNotFound }, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
-    } catch (err) {
-        res.status(500).json({error: err.message})
+    } catch (error) {
+        res.status(500).json({error: error.message})
     }
 }
   
@@ -172,8 +172,8 @@ export const getGroups = async (req, res) => {
       }else{
         res.status(200).json({data: [], refreshedTokenMessage: res.locals.refreshedTokenMessage});
       }
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+    } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
 
@@ -202,8 +202,8 @@ export const getGroup = async (req, res) => {
 
       res.status(200).json({data: {name: retrieveGroup.name, members: members}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
   
-      } catch (err) {
-        res.status(500).json({error: err.message})      
+      } catch (error) {
+        res.status(500).json({error: error.message})      
       }
 }
 
@@ -288,8 +288,8 @@ export const addToGroup = async (req, res) => {
         refreshedTokenMessage: res.locals.refreshedTokenMessage
       });
 
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+    } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
 
@@ -387,8 +387,8 @@ export const removeFromGroup = async (req, res) => {
       refreshedTokenMessage: res.locals.refreshedTokenMessage
     });
 
-  } catch (err) {
-      res.status(500).json({error: err.message})    
+  } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
 
@@ -399,13 +399,63 @@ export const removeFromGroup = async (req, res) => {
   - Response `data` Content: An object having an attribute that lists the number of `deletedTransactions` and a boolean attribute that
     specifies whether the user was also `deletedFromGroup` or not.
   - Optional behavior:
+    - If the user is the last user of a group then the group is deleted as well
     - error 400 is returned if the user does not exist 
+    - error 400 is returned if the request body does not contain all the necessary attributes
+    - error 400 is returned if the email passed in the request body is an empty string
+    - error 400 is returned if the email passed in the request body is not in correct email format
+    - error 400 is returned if the email passed in the request body does not represent a user in the database
+    - error 401 is returned if called by an authenticated user who is not an admin (authType = Admin)
  */
 export const deleteUser = async (req, res) => {
-    try {
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+  try {
+    const adminAuth = verifyAuth(req, res, { authType: "Admin" });
+    if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
+
+    const email = req.body;
+    if (!email) res.status(400).json({error: "The body doesn't contain the necessary attributes."});
+    if(!verifyEmail(email)) res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
+
+    const userData = await User.findOne({email: email});
+    if (!userData) res.status(400).json({error: `The user ${email} doesn't exist.`});
+
+    // check if the user is the last member of the user
+    let groupFlag = undefined;
+    const groupAssociated = await Group.findOne({"members.email": userData.email});
+    if (!groupAssociated) {
+      groupFlag = false;
+    } else {
+      groupFlag = true;
+      // check if the group is empty
+      if (groupAssociated.members.length == 1){
+        // selected user is the last member, directly remove the group
+        const removeGroup = await Group.deleteOne({name: groupAssociated.name});
+      } else {
+        // remove the selected user from the group associated (if present)
+        const groupAssociatedRemoved = await Group.updateOne(
+          { "members.email": userData.email }, 
+          { $pull: { members: { email: userData.email, user: userData._id} } }
+        );
+      }
     }
+
+    // remove all transactions related to the selected user
+    const numberOfTransactions = await transactions.deleteMany({username: userData.username});
+
+    // remove the user
+    const removeUser = await User.remove({username: userData.username, email: userData.email});
+
+    res.status(200).json({
+      data: {
+        deletedTransaction: numberOfTransactions.deletedCount,
+        deletedFromGroup: groupFlag
+      },
+      refreshedTokenMessage: res.locals.refreshedTokenMessage
+    });
+
+  } catch (error) {
+    res.status(500).json({error: error.message})    
+  }
 }
 
 /**
@@ -430,7 +480,7 @@ export const deleteGroup = async (req, res) => {
 
       const del = await Group.findOneAndDelete({ name: name }
       ).then(res.status(200).json({data: {message: "The group has been deleted!"}, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
-    } catch (err) {
-      res.status(500).json({error: err.message})    
+    } catch (error) {
+      res.status(500).json({error: error.message})    
     }
 }
