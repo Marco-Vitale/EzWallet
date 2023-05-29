@@ -35,27 +35,28 @@ export const updateCategory = async (req, res) => {
     try {
         const cookie = req.cookies
         if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized for access token" }); // unauthorized
+            return res.status(401).json({ error: "Unauthorized for access token" }); // unauthorized
         }
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
         if (adminAuth.authorized) { 
             //Admin auth successful
             const oldType = req.params.type;
             const {newType, newColor} = req.body;
-            const alreadyIn = await categories.findOne({$or: [ { "type" : newType }, { "color" : newColor } ] });
-            if(newType === "" || newColor === "" || alreadyIn){
-                return res.status(401).json({error: "Invalid input values"});
+            const alreadyIn = await categories.findOne({ "type" : newType });
+            if(!newType || !newColor || newType === "" || newColor === "" || alreadyIn){
+                return res.status(400).json({error: "Invalid input values"});
             }
             const exists = await categories.find({"type": oldType});
             if(!exists){
-                return res.status(401).json({message: "Category does not exist"});
+                return res.status(400).json({error: "Category does not exist"});
             }
             const query = {"type" : oldType};
             const update = {$set : {"type": newType, "color": newColor}};
             const writeResult1 = await categories.updateOne(query, update);
             const updateTransactions = {$set: {type: newType}};
             const writeResult2 = await transactions.updateMany(query, updateTransactions);
-            res.status(200).json({message: "Update Done", count: writeResult2.modifiedCount})
+            res.status(200).json({data: {message: "Category edited successfully", count: writeResult2.modifiedCount}, 
+                                        refreshedTokenMessage: res.locals.refreshedTokenMessage});
         } else {
             res.status(401).json({ error: adminAuth.message})
         }
@@ -82,21 +83,36 @@ export const deleteCategory = async (req, res) => {
     try {
         const cookie = req.cookies
         if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }); // unauthorized
+            return res.status(401).json({ error: "Unauthorized" }); // unauthorized
         }
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
         if (adminAuth.authorized) { 
         //Admin auth successful
-            const types = req.body
-            const inDB = await categories.find({type: {$in: types}});
-            if(types.length != inDB.length){
-                return res.status(400).json({ message: "Category doesn't exist" });
+            let types = req.body
+            if(!types || types.some((type) => type == "")){
+                return res.status(400).json({ error: "Input not present or empty string!" });
             }
+
+            const n_categories = await categories.find({});
+            if(n_categories.length === 1){
+                return res.status(400).json({ error: "There is only one category left!" });
+            }
+            if(n_categories.length === types.length){
+                const oldestType = n_categories[0].type;
+                types = types.filter((t) => t !== oldestType);
+            }
+            const inDB = await categories.find({type: {$in: types}});
+            if(types.length !== inDB.length){
+                return res.status(400).json({ error: "Category doesn't exist" });
+            }
+            
             const result = await categories.deleteMany({type: {$in: types}});
             const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: "investment"}});
-            res.status(200).json({message: "Deletion successful", count: writeResult2.modifiedCount});
+            res.status(200).json({data: {message: "Category edited successfully", 
+                                        count: writeResult2.modifiedCount}, 
+                                        refreshedTokenMessage: res.locals.refreshedTokenMessage});
         } else {
-            res.status(401).json({ error: adminAuth.message})
+            res.status(401).json({ error: adminAuth.cause});
         }
 
     } catch (error) {
@@ -208,7 +224,7 @@ export const getTransactionsByUser = async (req, res) => {
         if (!cookie.accessToken) {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
-        const isUserPresent = await User.find({username: req.params.username});
+        const isUserPresent = await User.findOne({username: req.params.username});
         if(!isUserPresent){
             return res.status(400).json({error: "User not found"});
         } 
@@ -217,11 +233,14 @@ export const getTransactionsByUser = async (req, res) => {
         if (req.url.indexOf("/transactions/users/") >= 0) {
             const adminAuth = verifyAuth(req, res, { authType: "Admin" })
             if(adminAuth.authorized){
+                const username = req.params.username;
                 transactions.aggregate([
                     {
                         $match: {
-                            username: req.params.username
-                        },
+                            "username": username
+                        }
+                    },
+                    {
                         $lookup: {
                             from: "categories",
                             localField: "type",
@@ -231,28 +250,29 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json(data);
+                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    res.json(res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage}));
                 }).catch(error => { throw (error) })
 
             }else{
-                return res.status(401).json({ message: "Unauthorized" });
+                return res.status(401).json({ error: "Unauthorized" });
             }
         } else {
             const userAuth = verifyAuth(req, res, { authType: "User", username: req.params.username});
             const date_filter = handleDateFilterParams(req);
             const amount_filter = handleAmountFilterParams(req);
-            
             if(userAuth.authorized){
                 transactions.aggregate([
                     {
                         $match: {
                             $and: [
-                              { date_filter },
-                              { amount_filter },
+                              date_filter ,
+                              amount_filter,
                               {username: req.params.username}
                             ]
-                        },
+                        }
+                    },
+                    {
                         $lookup: {
                             from: "categories",
                             localField: "type",
@@ -262,15 +282,15 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json(data);
+                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    res.json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
                 }).catch(error => { throw (error) })
             }else{
-                return res.status(401).json({ message: "Unauthorized" });
+                return res.status(401).json({ error: "Unauthorized" });
             }
         }
     } catch (error) {
-        res.status(500).json({error: err.message})    
+        res.status(500).json({error: error.message});    
     }
 }
 

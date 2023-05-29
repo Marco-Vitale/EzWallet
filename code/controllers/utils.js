@@ -8,6 +8,13 @@ import jwt from 'jsonwebtoken'
  *  Example: {date: {$gte: "2023-04-30T00:00:00.000Z"}} returns all transactions whose `date` parameter indicates a date from 30/04/2023 (included) onwards
  * @throws an error if the query parameters include `date` together with at least one of `from` or `upTo`
  */
+
+function validateDateFormat(dateString) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    return regex.test(dateString);
+}
+
+
 export const handleDateFilterParams = (req) => {
     const date = req.query.date;
     const from = req.query.from;
@@ -16,15 +23,29 @@ export const handleDateFilterParams = (req) => {
         throw new Error("filter params inconsistency");
     }
     if(date){
-        return {date: date};
+        if(!validateDateFormat(date)){
+            throw new Error("Incorrect format fo the date!");
+        }
+        const start = new Date(`${date}T00:00:00.000Z`);
+        const end = new Date(`${date}T00:00:00.000Z`);
+        return {$and: [{date: {$gte: start}}, {date: {$lte: end}}]};
     }else if(from){
+        if(!validateDateFormat(from)){
+            throw new Error("Incorrect format of the date!");
+        }
         if(upTo){
-            return {$and: [{date: {$gte: from}}, {date: {$lte: upTo}}]};
+            if(!validateDateFormat(upTo)){
+                throw new Error("Incorrect format of the date!");
+            }
+            return {$and: [{date: {$gte: new Date(`${from}T00:00:00.000Z`)}}, {date: {$lte:new Date(`${upTo}T00:00:00.000Z`)}}]};
         }else{
-            return {date: {$gte: date}};
+            return {date: {$gte: new Date(`${from}T00:00:00.000Z`)}};
         }
     }else if(upTo){
-        return {date: {$lte: date}};
+        if(!validateDateFormat(upTo)){
+            throw new Error("Incorrect format of the date!");
+        }
+        return {date: {$lte: new Date(`${upTo}T00:00:00.000Z`)}};
     }else{
         return {};
     }
@@ -199,15 +220,30 @@ export const handleAmountFilterParams = (req) => {
     const min = req.query.min;
     const max = req.query.max;
 
+
     if(min){
+        if(isNaN(min)){
+            throw new Error("not numerical values");
+        }
         if(max){
-            return {$and: [{amount: {$lte: max}}, {amount: {$gte: min}}]};
+            if(isNaN(max)){
+                throw new Error("not numerical values");
+            }
+            return {$and: [{amount: {$lte: parseFloat(max)}}, {amount: {$gte: parseFloat(min)}}]};
         }else{
-            return {amount: {$gte: min}};
+            return {amount: {$gte: parseFloat(min)}};
         }
     }else if(max){
-        return {amount: {$lte: max}};
+        if(isNaN(max)){
+            throw new Error("not numerical values");
+        }
+        return {amount: {$lte: parseFloat(max)}};
     }else{
         return {};
     }
+}
+
+export const verifyEmail = (mail) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return regex.test(mail);
 }
