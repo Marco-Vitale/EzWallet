@@ -83,11 +83,22 @@ export const registerAdmin = async (req, res) => {
   - Request Body Content: An object having attributes `email` and `password`
   - Response `data` Content: An object with the created accessToken and refreshToken
   - Optional behavior:
-    - error 400 is returned if the user does not exist
+    - error 400 is returned if the request body does not contain all the necessary attributes
+    - error 400 is returned if at least one of the parameters in the request body is an empty string
+    - error 400 is returned if the email in the request body is not in a valid email format
+    - error 400 is returned if the email in the request body does not identify a user in the database
     - error 400 is returned if the supplied password does not match with the one in the database
+
  */
 export const login = async (req, res) => {
     const { email, password } = req.body
+
+    if(!email || !password) return res.status(400).json({error: "Missing parameters"});
+
+    if(!verifyEmail(email)){
+        return res.status(400).json({error: "The email format is not valid!"})
+    }
+
     const cookie = req.cookies
     const existingUser = await User.findOne({ email: email })
     if (!existingUser) return res.status(400).json('please you need to register')

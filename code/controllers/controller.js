@@ -7,19 +7,29 @@ import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./
  * Create a new category
   - Request Body Content: An object having attributes `type` and `color`
   - Response `data` Content: An object having attributes `type` and `color`
+  - Optional behaviour:
+    - error 400 returned if the request body does not contain all the necessary attributes
+    - error 400 returned if at least one of the parameters in the request body is an empty string
+    - error 400 returned if the type of category passed in the request body represents an already existing category in the database
+    - error 401 returned if called by an authenticated user who is not an admin (authType = Admin)
  */
-export const createCategory = (req, res) => {
+export const createCategory = async (req, res) => {
     try {
+        const adminAuth = verifyAuth(req, res, { authType: "Admin" })
+        if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
         
-        const cookie = req.cookies
-        if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
-        }
         const { type, color } = req.body;
+        if(!type || !color) return res.status(400).json({error: "Missing parameters"});
+
+        const retrieveCategory = await categories.findOne({type: type});
+        if (retrieveCategory) res.status(400).json({error: `Invalid input values, a category of type ${type} already exists`});
+
         const new_categories = new categories({ type, color });
         new_categories.save()
             .then(data => res.json(data))
             .catch(err => { throw err })
+
+        res.status(200).json({data: {type: type, color: color}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
     } catch (error) {
         res.status(500).json({error: error.message})    
     }
@@ -115,15 +125,14 @@ export const deleteCategory = async (req, res) => {
  */
 export const getCategories = async (req, res) => {
     try {
-        const cookie = req.cookies
-        if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
-        }
+        const auth = verifyAuth(req, res, { authType: "Simple" });
+        if (!auth.authorized) res.status(401).json({error: auth.cause});
+
         let data = await categories.find({})
 
         let filter = data.map(v => Object.assign({}, { type: v.type, color: v.color }))
 
-        return res.json(filter)
+        res.status(200).json({data: filter, refreshedTokenMessage: res.locals.refreshedTokenMessage});
     } catch (error) {
         res.status(500).json({error: error.message})    
     }
@@ -134,22 +143,48 @@ export const getCategories = async (req, res) => {
   - Request Body Content: An object having attributes `username`, `type` and `amount`
   - Response `data` Content: An object having attributes `username`, `type`, `amount` and `date`
   - Optional behavior:
-    - error 400 is returned if the username or the type of category does not exist
-
-  The createTransaction method receives a username in both its request body and as its request parameter: 
-  - The two must be equal to allow the creation, in case they are different then the method must return a 400 error
+    - error 400 is returned if the request body does not contain all the necessary attributes
+    - error 400 is returned if at least one of the parameters in the request body is an empty string
+    - error 400 is returned if the type of category passed in the request body does not represent a category in the database
+    - error 400 is returned if the username passed in the request body is not equal to the one passed as a route parameter
+    - error 400 is returned if the username passed in the request body does not represent a user in the database
+    - error 400 is returned if the username passed as a route parameter does not represent a user in the database
+    - error 400 is returned if the amount passed in the request body cannot be parsed as a floating value (negative numbers are accepted)
+    - error 401 is returned if called by an authenticated user who is not the same user as the one in the route parameter (authType = User)
  */
 export const createTransaction = async (req, res) => {
     try {
-        const cookie = req.cookies
-        if (!cookie.accessToken) {
-            return res.status(401).json({ message: "Unauthorized" }) // unauthorized
-        }
+        const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username});
+        if (!userAuth.authorized) res.status(401).json({error: userAuth.cause});
+        
         const { username, amount, type } = req.body;
+        if(!username || !amount || !type) return res.status(400).json({error: "Missing parameters"});
+
+        if (isNaN(parseFloat(amount))) res.status(400).json({error: "Error in casting amount to float"});
+
+        const retrieveCategory = await categories.findOne({type: type});
+        if (!retrieveCategory) res.status(400).json({error: "Category doesn't exist"});
+
+        const usernameParam = req.params.username;
+        if (usernameParam !== username) res.status(400).json({error: "the username passed in the request body is not equal to the one passed as a route parameter"});
+
+        const retrieveUserParam = await User.findOne({username: usernameParam});
+        if (!retrieveUserParam) res.status(400).json({error: "User doesn't exist"});
+        
         const new_transactions = new transactions({ username, amount, type });
         new_transactions.save()
             .then(data => res.json(data))
             .catch(err => { throw err })
+
+        res.status(200).json({
+            data: {
+                username: new_transactions.username,
+                amount: new_transactions.amount,
+                type: new_transactions.type,
+                date: new_transactions.date
+            }, 
+            refreshedTokenMessage: res.locals.refreshedTokenMessage});
+        
     } catch (error) {
         res.status(500).json({error: error.message})    
     }
