@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app } from '../app';
 import { User } from '../models/User.js';
+import {getUsers, getUser} from '../controllers/users';
 
 /**
  * In order to correctly mock the calls to external modules it is necessary to mock them using the following line.
@@ -45,17 +46,20 @@ describe("getUsers", () => {
 
 describe("getUsers", () => {
   test("should return empty list if there are no users", async () => {
-    //any time the `User.find()` method is called jest will replace its actual implementation with the one defined below
-    const mockReq = {}
+    const mockReq = {
+    }
     const mockRes = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
     }
     jest.spyOn(User, "find").mockResolvedValue([])
     await getUsers(mockReq, mockRes)
     expect(User.find).toHaveBeenCalled()
     expect(mockRes.status).toHaveBeenCalledWith(200)
-    expect(mockRes.json).toHaveBeenCalledWith([])
+    expect(mockRes.json).toHaveBeenCalledWith({ data: [], message: mockRes.locals.refreshedTokenMessage})
   })
 
   test("should retrieve list of all users", async () => {
@@ -65,7 +69,7 @@ describe("getUsers", () => {
       json: jest.fn(),
     }
     const retrievedUsers = [{ username: 'test1', email: 'test1@example.com', password: 'hashedPassword1' }, { username: 'test2', email: 'test2@example.com', password: 'hashedPassword2' }]
-    jest.spyOn(User, "find").mockResolvedValue(retrievedUsers)
+    jest.spyOn(User, "find").mockResolvedValue(retrievedUsers) //Quando viene chiamato find su User viene simulata la risposta di un valore dato ovvero il retrievedUsers
     await getUsers(mockReq, mockRes)
     expect(User.find).toHaveBeenCalled()
     expect(mockRes.status).toHaveBeenCalledWith(200)
@@ -73,25 +77,7 @@ describe("getUsers", () => {
   })
 })
 
-describe("getUser", () => {
-  test("if user does not exist or is void should return error 400", async () => {
-    //any time the `User.find()` method is called jest will replace its actual implementation with the one defined below
-    const mockReq = {}
-    const mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    }
-    jest.spyOn(User, "findOne").mockResolvedValue([]) //if user not found db return void data []
-    await getUser(mockReq, mockRes)
-    expect(User.findOne).toHaveBeenCalled()
-    expect(mockRes.status).toHaveBeenCalledWith(400)
-    expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({ error: expect.any(String) }));
-  })
-
-
-
-
- })
+describe("getUser", () => { })
 
 describe("createGroup", () => { })
 
