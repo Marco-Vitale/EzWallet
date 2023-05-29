@@ -69,6 +69,8 @@ export const getUser = async (req, res) => {
 export const createGroup = async (req, res) => {
     try {
 
+      //If the function is called with an empty array for members the group is created with only the user that is logged in
+      
         const cookie = req.cookies
         if (!cookie.accessToken || !cookie.refreshToken) {
             return res.status(401).json({ error: "Unauthorized" }) // unauthorized
@@ -104,8 +106,10 @@ export const createGroup = async (req, res) => {
         }else{
           const calleeUser = await User.findOne({ email: decodedAccessToken.email });
           if(calleeUser){
-            members.push(decodedAccessToken.email)
-            membersDB.push({ email: decodedAccessToken.email, user: calleeUser._id });
+            if(!memberEmails.includes(decodedAccessToken.email)){
+              members.push(decodedAccessToken.email)
+              membersDB.push({ email: decodedAccessToken.email, user: calleeUser._id });
+            }
           }else{
             return res.status(400).json({ error: "Unexpected error"});
           }
