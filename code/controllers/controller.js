@@ -43,7 +43,7 @@ export const updateCategory = async (req, res) => {
             const oldType = req.params.type;
             const {newType, newColor} = req.body;
             const alreadyIn = await categories.findOne({ "type" : newType });
-            if(!newType || !newColor || newType === "" || newColor === "" || alreadyIn){
+            if(!newType || !newColor || newType.trim() === "" || newColor.trim() === "" || alreadyIn){
                 return res.status(400).json({error: "Invalid input values"});
             }
             const exists = await categories.find({"type": oldType});
@@ -89,7 +89,7 @@ export const deleteCategory = async (req, res) => {
         if (adminAuth.authorized) { 
         //Admin auth successful
             let types = req.body
-            if(!types || types.some((type) => type == "")){
+            if(!types || types.some((type) => type.trim() === "" )){
                 return res.status(400).json({ error: "Input not present or empty string!" });
             }
 
@@ -98,7 +98,7 @@ export const deleteCategory = async (req, res) => {
                 return res.status(400).json({ error: "There is only one category left!" });
             }
             if(n_categories.length === types.length){
-                const oldestType = n_categories[0].type;
+                const oldestType = await categories.find({}).sort({_id: 1})[0].type;
                 types = types.filter((t) => t !== oldestType);
             }
             const inDB = await categories.find({type: {$in: types}});
