@@ -14,7 +14,7 @@ export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        if(!username || !email || !password) return res.status(400).json({error: "Missing parameters"})
+        if(!username || !email || !password || username.trim() === "" || email.trim() === "" || password.trim() === "") return res.status(400).json({error: "Missing parameters"})
 
         if(!verifyEmail(email)){
             return res.status(400).json({error: "The email format is not valid!"})
@@ -52,7 +52,7 @@ export const registerAdmin = async (req, res) => {
         
         const { username, email, password } = req.body
 
-        if(!username || !email || !password) return res.status(400).json({error: "Missing parameters"})
+        if(!username || !email || !password || username.trim() === "" || email.trim() === "" || password.trim() === "") return res.status(400).json({error: "Missing parameters"})
 
         if(!verifyEmail(email)){
             return res.status(400).json({error: "The email format is not valid!"})

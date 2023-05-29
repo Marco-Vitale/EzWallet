@@ -82,9 +82,7 @@ export const createGroup = async (req, res) => {
         const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
       
         const {name, memberEmails} = req.body
-        if(!name || !memberEmails) return res.status(400).json({error: "Missing parameters"})
-
-        if(name=="") return res.status(400).json({error: "Name cannot be an empty string"})
+        if(!name || !memberEmails || name.trim() === "" || memberEmails.some((mail) => mail.trim() === "")) return res.status(400).json({error: "Missing parameters"})
 
         const existingGroup = await Group.findOne({ name: req.body.name });
         if (existingGroup) return res.status(400).json({ error: "already existing group with the same name" });
@@ -133,7 +131,13 @@ export const createGroup = async (req, res) => {
           }
         }
 
-        if(members.length === 0) return res.status(400).json({ error: "all the `memberEmails` either do not exist or are already in a group" }); 
+        //Theoretically at this point the callee user is always in the members array, so if the lenght is equals to 1
+        //This means that no other members can be added to this group, the creation is aborted.
+
+        /*It should not be possible to create a group with only the email of the calling user and no other member's email. 
+        There must be at least one more valid email in the array for the function to not return an error*/
+
+        if(members.length === 0 || members.length === 1) return res.status(400).json({ error: "all the `memberEmails` either do not exist or are already in a group" }); 
 
         const newGroup = await Group.create({
           name: name,
@@ -477,7 +481,7 @@ export const deleteGroup = async (req, res) => {
 
       const {name} = req.body
 
-      if(!name || name=="") return res.status(400).json({error: "Missing the name of the group"})
+      if(!name || name.trim() === "") return res.status(400).json({error: "Missing the name of the group"})
 
       const existingGroup = await Group.findOne({ name: req.body.name });
       if (!existingGroup) return res.status(400).json({ message: "The group does not exist!" });
