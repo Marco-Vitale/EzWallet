@@ -426,22 +426,16 @@ export const deleteUser = async (req, res) => {
       groupFlag = false;
     } else {
       groupFlag = true;
-      // remove the selected user from the group associated (if present)
-      const groupAssociatedRemoved = await Group.updateOne(
-        { "members.email": userData.email }, 
-        { $pull: { 
-          members: {
-            email: userData.email, 
-            user: userData._id} 
-          } 
-        }
-      );
-      
-      const updateGroupAssociated = await Group.findOne({name: groupAssociated.name});
-
       // check if the group is empty
-      if (updateGroupAssociated.members.length == 0){
+      if (groupAssociated.members.length == 1){
+        // selected user is the last member, directly remove the group
         const removeGroup = await Group.deleteOne({name: groupAssociated.name});
+      } else {
+        // remove the selected user from the group associated (if present)
+        const groupAssociatedRemoved = await Group.updateOne(
+          { "members.email": userData.email }, 
+          { $pull: { members: { email: userData.email, user: userData._id} } }
+        );
       }
     }
 
