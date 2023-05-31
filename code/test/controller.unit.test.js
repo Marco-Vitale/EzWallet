@@ -72,7 +72,7 @@ describe("updateCategory", () => {  //TODO: edit with the correct requirements
         expect(categories.updateMany).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(200)
-        expect(mockRes.json).toHaveBeenCalledWith({ message: "Update Done", count: 2 })
+        expect(mockRes.json).toHaveBeenCalledWith({ message: "Category edited successfully", count: 2 }, {refreshedTokenMessage: res.locals.refreshedTokenMessage})
     });
 
     test("Should return status code 400, request body does not contain all the necessary attributes", async() => {

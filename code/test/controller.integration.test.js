@@ -18,7 +18,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  //await mongoose.connection.db.dropDatabase();
+  await mongoose.connection.db.dropDatabase();
   await mongoose.connection.close();
 });
 
@@ -44,28 +44,29 @@ describe("updateCategory", () => {
     })
 
     test("should return 200 and update the category", (done) => {
-        transactions.create({
-            username: "user1",
-            type: "category#1",
-            amount: 10
-        }).then(() => {
-            categories.create({
-            type: "category#1",
-            color: "red"
-            }).then(() => {
-            request(app)
-                .patch("/api/categories/category#1")
-                .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
-                .send({newType: "category#2", newColor: "yellow" }) // TODO: edit in order to handle requirements
-                .then((response) => {
-                expect(response.status).toBe(200)
-                expect(response.body.message).toEqual("Update Done")
-                expect(response.body.count).toBe(1)
-                done() // Notify Jest that the test is complete
-                })
-                .catch((err) => done(err))
+        for (let i=0; i<3; i++){
+            transactions.create({
+                username: "user1",
+                type: "category1",
+                amount: i
             })
-    })
+        }
+        categories.create({
+            type: "category1",
+            color: "red"
+        }).then(() => {
+        request(app)
+            .patch("/api/categories/category1")
+            .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+            .send({newType: "category2", newColor: "yellow" }) // TODO: edit in order to handle requirements
+            .then((response) => {
+                expect(response.status).toBe(200)
+                expect(response.body.data.message).toEqual("Category edited successfully")
+                expect(response.body.data.count).toBe(3)
+                done() // Notify Jest that the test is complete
+            })
+            .catch((err) => done(err))
+        })
     })
 })
 
