@@ -247,8 +247,3 @@ export const handleAmountFilterParams = (req) => {
         return {};
     }
 }
-
-export const verifyEmail = (mail) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regex.test(mail);
-}
