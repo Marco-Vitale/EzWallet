@@ -18,7 +18,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await mongoose.connection.db.dropDatabase();
+  //await mongoose.connection.db.dropDatabase();
   await mongoose.connection.close();
 });
 
@@ -29,9 +29,44 @@ describe("createCategory", () => {
 })
 
 describe("updateCategory", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
-    });
+    const exampleAdminAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV6d2FsbGV0QHRlc3QuY29tIiwiaWQiOiI2NDc2ZTAwMTNlZGQxZTQ4MzEwOGVhOGEiLCJ1c2VybmFtZSI6ImV6d2FsbGV0XzMxXzA1XzIwMjQiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU1MTIyMTIsImV4cCI6MTcxNzA0ODIxMn0.WjFDAfn9X9hkLFt-6sx8T6cGMsRnSYIdw27mERvRelQ";
+    const exampleAdminRefToken=exampleAdminAccToken;
+
+    const exampleUserAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QzNjVAdGVzdC5jb20iLCJpZCI6IjY0NzZlMDhkM2VkZDFlNDgzMTA4ZWE5MCIsInVzZXJuYW1lIjoidGVzdF8zMV8wNV8yMDI0Iiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU1MTIzNDUsImV4cCI6MTcxNzA0ODM0NX0._1pvR1CW1qSuIj_XnM2aKZWD7dC7ToACiXkvxsahRkk";
+    const exampleUserRefToken=exampleUserAccToken;
+
+    /**
+    * Database is cleared before each test case, in order to allow insertion of data tailored for each specific test case.
+    */
+    beforeEach(async () => {
+        await categories.deleteMany({})
+        await transactions.deleteMany({})
+    })
+
+    test("should return 200 and update the category", (done) => {
+        transactions.create({
+            username: "user1",
+            type: "category#1",
+            amount: 10
+        }).then(() => {
+            categories.create({
+            type: "category#1",
+            color: "red"
+            }).then(() => {
+            request(app)
+                .patch("/api/categories/category#1")
+                .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+                .send({newType: "category#2", newColor: "yellow" }) // TODO: edit in order to handle requirements
+                .then((response) => {
+                expect(response.status).toBe(200)
+                expect(response.body.message).toEqual("Update Done")
+                expect(response.body.count).toBe(1)
+                done() // Notify Jest that the test is complete
+                })
+                .catch((err) => done(err))
+            })
+    })
+    })
 })
 
 describe("deleteCategory", () => { 

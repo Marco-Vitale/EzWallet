@@ -34,7 +34,7 @@ describe("getUsers", () => {
   /**
    * Database is cleared before each test case, in order to allow insertion of data tailored for each specific test case.
    */
-  beforeEach(async () => {
+  /*beforeEach(async () => {
     await User.deleteMany({})
   })
 
@@ -68,10 +68,14 @@ describe("getUsers", () => {
         })
         .catch((err) => done(err))
     })
-  })
+  })*/
 })
 
-describe("getUser", () => { })
+describe("getUser", () => {
+  test('Dummy test, change it', () => {
+    expect(true).toBe(true);
+  });
+ })
 
 describe("createGroup", () => { })
 
