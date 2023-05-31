@@ -25,7 +25,7 @@ router.post('/login', login)
 router.get("/categories", getCategories)
 router.get("/users/:username", getUser)
 router.post("/users/:username/transactions", createTransaction)
-router.get("/users/:username/transactions", getTransactionsByUser) //TODO: debugging
+router.get("/users/:username/transactions", getTransactionsByUser) 
 router.delete("/users/:username/transactions", deleteTransaction) //DONE
 router.get("/users/:username/transactions/category/:category", getTransactionsByUserByCategory) 
 router.post("/groups", createGroup)

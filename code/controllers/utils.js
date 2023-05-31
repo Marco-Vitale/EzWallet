@@ -155,7 +155,7 @@ export const verifyAuth = (req, res, info) => {
                     role: refreshToken.role
                 }, process.env.ACCESS_KEY, { expiresIn: '1h' })
                 res.cookie('accessToken', newAccessToken, { httpOnly: true, path: '/api', maxAge: 60 * 60 * 1000, sameSite: 'none', secure: true })
-                res.locals.message = 'Access token has been refreshed. Remember to copy the new one in the headers of subsequent calls'
+                res.locals.refreshedTokenMessage = 'Access token has been refreshed. Remember to copy the new one in the headers of subsequent calls'
                 
                 switch(info.authType){
                     case 'Simple':
@@ -195,17 +195,22 @@ export const verifyAuth = (req, res, info) => {
                     default:
                         return { authorized: false, cause: "Wrong authType inserted" }
                 }
-            } catch (err) {
-                if (err.name === "TokenExpiredError") {
+            } catch (error) {
+                if (error.name === "TokenExpiredError") {
                     return { authorized: false, cause: "Perform login again" }
                 } else {
-                    return { authorized: false, cause: err.name }
+                    return { authorized: false, cause: error.name }
                 }
             }
         } else {
             return { authorized: false, cause: err.name };
         }
     }
+}
+
+export const verifyEmail = (mail) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return regex.test(mail);
 }
 
 
