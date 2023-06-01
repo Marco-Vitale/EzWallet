@@ -253,9 +253,10 @@ export const addToGroup = async (req, res) => {
         if (!auth.authorized) res.status(401).json({error: auth.cause});
       }
 
-      const newMembers = req.body;
+      const newMembers = req.body.emails;
       // check if the body is correct
-      if (!Array.isArray(newMembers) || newMembers.length==0) res.status(400).json({error: "Body doesn't contain all requested attributes"});
+      if (!newMembers || newMembers.length==0 || newMembers.some((member) => member.trim() === "")) 
+        res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
       // check if the passed emails are in the correct format
       for (const email of newMembers) {
@@ -340,9 +341,10 @@ export const removeFromGroup = async (req, res) => {
       if (!auth.authorized) res.status(401).json({error: auth.cause});
     }
 
-    const selectedMembers = req.body;
+    const selectedMembers = req.body.emails;
     // check if the body is correct
-    if (!Array.isArray(selectedMembers) || selectedMembers.length==0) res.status(400).json({error: "Body doesn't contain all requested attributes"});
+    if (!selectedMembers || selectedMembers.length==0 || selectedMembers.some((member) => member.trim() === "")) 
+      res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
     // check if the passed emails are in the correct format
     for (const email of selectedMembers) {
@@ -426,8 +428,8 @@ export const deleteUser = async (req, res) => {
     const adminAuth = verifyAuth(req, res, { authType: "Admin" });
     if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
 
-    const email = req.body;
-    if (!email) res.status(400).json({error: "The body doesn't contain the necessary attributes."});
+    const email = req.body.email;
+    if (!email || email.trim() === "") res.status(400).json({error: "The body doesn't contain the necessary attributes."});
     if(!verifyEmail(email)) res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
 
     const userData = await User.findOne({email: email});

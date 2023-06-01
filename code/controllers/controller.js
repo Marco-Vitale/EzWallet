@@ -19,7 +19,7 @@ export const createCategory = async (req, res) => {
         if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
         
         const { type, color } = req.body;
-        if(!type || !color) return res.status(400).json({error: "Missing parameters"});
+        if(!type || !color || type.trim() === "" || color.trim() === "") return res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
         const retrieveCategory = await categories.findOne({type: type});
         if (retrieveCategory) res.status(400).json({error: `Invalid input values, a category of type ${type} already exists`});
@@ -174,7 +174,8 @@ export const createTransaction = async (req, res) => {
         if (!userAuth.authorized) res.status(401).json({error: userAuth.cause});
         
         const { username, amount, type } = req.body;
-        if(!username || !amount || !type) return res.status(400).json({error: "Missing parameters"});
+        if(!username || !amount || !type || username.trim() === "" || type.trim() === "") 
+            return res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
         if (isNaN(parseFloat(amount))) res.status(400).json({error: "Error in casting amount to float"});
 
