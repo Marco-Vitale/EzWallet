@@ -208,11 +208,6 @@ export const verifyAuth = (req, res, info) => {
     }
 }
 
-export const verifyEmail = (mail) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regex.test(mail);
-}
-
 
 /**
  * Handle possible amount filtering options in the query parameters for getTransactionsByUser when called by a Regular user.

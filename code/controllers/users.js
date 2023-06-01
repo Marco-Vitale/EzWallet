@@ -84,6 +84,12 @@ export const createGroup = async (req, res) => {
         const {name, memberEmails} = req.body
         if(!name || !memberEmails || name.trim() === "" || memberEmails.some((mail) => mail.trim() === "")) return res.status(400).json({error: "Missing parameters"})
 
+        const dup = memberEmails.filter((item, index) => memberEmails.indexOf(item) !== index).length
+
+        if(dup>0){
+          return res.status(400).json({error: "MemberEmails contains duplicates"})
+        }
+
         const existingGroup = await Group.findOne({ name: req.body.name });
         if (existingGroup) return res.status(400).json({ error: "already existing group with the same name" });
 
