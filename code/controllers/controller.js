@@ -100,7 +100,7 @@ export const deleteCategory = async (req, res) => {
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
         if (adminAuth.authorized) { 
         //Admin auth successful
-            let types = req.body
+            let types = req.body.types
             if(!types || types.some((type) => type.trim() === "" )){
                 return res.status(400).json({ error: "Input not present or empty string!" });
             }
@@ -109,9 +109,12 @@ export const deleteCategory = async (req, res) => {
             if(n_categories.length === 1){
                 return res.status(400).json({ error: "There is only one category left!" });
             }
+            const ordered = await categories.find({}).sort({_id: 1});
+            let oldestType = ordered[0]["type"];
+            let flag = false;
             if(n_categories.length === types.length){
-                const oldestType = await categories.find({}).sort({_id: 1})[0].type;
                 types = types.filter((t) => t !== oldestType);
+                flag = true;
             }
             const inDB = await categories.find({type: {$in: types}});
             if(types.length !== inDB.length){
@@ -119,7 +122,11 @@ export const deleteCategory = async (req, res) => {
             }
             
             const result = await categories.deleteMany({type: {$in: types}});
-            const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: "investment"}});
+            if(flag === false && types.some((t) => t === oldestType)){
+                const cats = await categories.find({}).sort({_id: 1});
+                oldestType = cats[0]["type"];
+            }
+            const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: oldestType}});
             res.status(200).json({data: {message: "Category edited successfully", 
                                         count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
