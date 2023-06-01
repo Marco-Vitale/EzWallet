@@ -53,9 +53,9 @@ export const updateCategory = async (req, res) => {
         if (adminAuth.authorized) { 
             //Admin auth successful
             const oldType = req.params.type;
-            const {newType, newColor} = req.body;
-            const alreadyIn = await categories.findOne({ "type" : newType });
-            if(!newType || !newColor || newType.trim() === "" || newColor.trim() === "" || alreadyIn){
+            const {type, color} = req.body;
+            const alreadyIn = await categories.findOne({ "type" : type });
+            if(!type || !color || type.trim() === "" || color.trim() === "" || alreadyIn){
                 return res.status(400).json({error: "Invalid input values"});
             }
             const exists = await categories.find({"type": oldType});
@@ -63,9 +63,9 @@ export const updateCategory = async (req, res) => {
                 return res.status(400).json({error: "Category does not exist"});
             }
             const query = {"type" : oldType};
-            const update = {$set : {"type": newType, "color": newColor}};
+            const update = {$set : {"type": type, "color": color}};
             const writeResult1 = await categories.updateOne(query, update);
-            const updateTransactions = {$set: {type: newType}};
+            const updateTransactions = {$set: {type: type}};
             const writeResult2 = await transactions.updateMany(query, updateTransactions);
             res.status(200).json({data: {message: "Category edited successfully", count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
@@ -295,18 +295,6 @@ export const getTransactionsByUser = async (req, res) => {
                 return res.status(401).json({ error: "Unauthorized" });
             }
         }
-        else if ((pathComponents[1] == "users" && pathComponents[3] == "transactions") && req.params.username==path[2] && (userAuth||adminAuth)) {
-            transactions.findOne({ username: pathComponents[1]}, function(err, result) {
-                if (err) {
-                  console.error('Error finding user:', err);
-                  res.status(401).json({ error: "User not found"})
-                }
-                else{
-                    console.log('User exists:', result);
-                    result}             
-                                 
-        });
-        } 
         else {
             const userAuth = verifyAuth(req, res, { authType: "User", username: req.params.username});
             const date_filter = handleDateFilterParams(req);
