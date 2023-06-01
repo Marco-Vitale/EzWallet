@@ -100,7 +100,6 @@ describe("getUsers", () => {
         .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
-          console.log(response)
 
           //Controlli sulla dimensione della risposta
           expect(Object.keys(response.body).length).toBeGreaterThan(0)
@@ -132,7 +131,7 @@ describe("getUsers", () => {
         .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
-          console.log(response)
+          
 
           //Controlli sulla dimensione della risposta
           expect(Object.keys(response.body).length).toBeGreaterThan(0)
@@ -191,6 +190,30 @@ describe("getUsers", () => {
 
 
 describe("getUser", () => { 
+  /**
+   * Database is cleared before each test case, in order to allow insertion of data tailored for each specific test case.
+   */
+  beforeEach(async () => {
+    await User.deleteMany({})
+  })
+  /* [ADMIN]
+  username: administratortest
+  password: administratorpassword
+  mail: administrator@test.com
+  */
+  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
+  const exampleAdminAccToken=exampleAdminRefToken;
+
+  /* [REGULAR]
+  {
+    "username":"tester", 
+    "email": "test@test.com",
+    "password": "tester"
+}
+  */
+  
+  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTY4NjIzNTkyMn0.XhUwuKINOEQHtYE1hOCPv-a5TR_NIB4l-R9AdRnL024";
+  const exampleUserAccToken= exampleUserRefToken;
   test("[ADMIN](status: 200) should retrieve himself", (done) => {
     User.create({
       username: "administratortest",
@@ -199,7 +222,7 @@ describe("getUser", () => {
       role: "Admin"
     }).then(() => {
       request(app)
-        .get("/api/users")
+        .get("/api/users/administratortest")
         .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
@@ -208,6 +231,7 @@ describe("getUser", () => {
           expect(Object.keys(response.body).length).toBeGreaterThan(0)
           expect(Object.keys(response.body).length).toBeLessThan(3)
 
+          expect(response.body.data).not.toBeInstanceOf(Array)
 
           //Controlli sui campi
           expect(response.body).toHaveProperty("data")
@@ -215,12 +239,89 @@ describe("getUser", () => {
             expect(response.body).toHaveProperty("refreshedTokenMessage")
           }
           
-          expect(response.body.data).toHaveLength(1)
+          
+        
+          
+          console.log(response.body)
+          //Controllo sui singoli dati
+          expect(response.body.data.username).toEqual("administratortest")
+          expect(response.body.data.email).toEqual("administrator@test.com")
+          expect(response.body.data.role).toEqual("Admin")
+          done() // Notify Jest that the test is complete
+        })
+        .catch((err) => done(err))
+    })
+  })
+
+  test("[ADMIN](status: 200) should retrieve another user", (done) => {
+    User.create({
+      username: "tester",
+      email: "test@test.com",
+      password: "tester",
+      role: "Regular"
+    }).then(() => {
+      request(app)
+        .get("/api/users/tester")
+        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .then((response) => {
+          expect(response.status).toBe(200)
+
+          //Controlli sulla dimensione della risposta (può aspettare sia il refresh token che no)
+          expect(Object.keys(response.body).length).toBeGreaterThan(0)
+          expect(Object.keys(response.body).length).toBeLessThan(3)
+
+          expect(response.body.data).not.toBeInstanceOf(Array)
+
+          //Controlli sui campi
+          expect(response.body).toHaveProperty("data")
+          if(Object.keys(response.body).length==2){
+            expect(response.body).toHaveProperty("refreshedTokenMessage")
+          }
+          
+          
 
           //Controllo sui singoli dati
-          expect(response.body.data[0].username).toEqual("administratortest")
-          expect(response.body.data[0].email).toEqual("administrator@test.com")
-          expect(response.body.data[0].role).toEqual("Regular")
+          expect(response.body.data.username).toEqual("tester")
+          expect(response.body.data.email).toEqual("test@test.com")
+          expect(response.body.data.role).toEqual("Regular")
+          done() // Notify Jest that the test is complete
+        })
+        .catch((err) => done(err))
+    })
+  })
+
+  test("[REGULAR](status: 200) should retrieve himself", (done) => {
+    User.create({
+      username: "tester",
+      email: "test@test.com",
+      password: "tester",
+      role: "Regular"
+    }).then(() => {
+      request(app)
+        .get("/api/users/tester")
+        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .then((response) => {
+          console.log(response)
+          expect(response.status).toBe(200)
+
+          //Controlli sulla dimensione della risposta (può aspettare sia il refresh token che no)
+          expect(Object.keys(response.body).length).toBeGreaterThan(0)
+          expect(Object.keys(response.body).length).toBeLessThan(3)
+
+          expect(response.body.data).not.toBeInstanceOf(Array)
+
+          //Controlli sui campi
+          expect(response.body).toHaveProperty("data")
+          if(Object.keys(response.body).length==2){
+            expect(response.body).toHaveProperty("refreshedTokenMessage")
+          }
+          
+          
+
+          //Controllo sui singoli dati
+          expect(response.body.data.username).toEqual("tester")
+          expect(response.body.data.email).toEqual("test@test.com")
+          expect(response.body.data.role).toEqual("Regular")
           done() // Notify Jest that the test is complete
         })
         .catch((err) => done(err))
