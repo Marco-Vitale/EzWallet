@@ -17,7 +17,7 @@ export const getUsers = async (req, res) => {
       const users = (await User.find()).map(user => ({username: user.username, email: user.email, role: user.role}));
       res.status(200).json({data: users, refreshedTokenMessage: res.locals.refreshedTokenMessage});
     } else {
-      res.status(400).json({ error: adminAuth.cause})
+      res.status(401).json({ error: adminAuth.cause})
     }
   } catch (error) {
     res.status(500).json({error: error.message})    
