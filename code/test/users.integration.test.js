@@ -37,19 +37,37 @@ describe("getUsers", () => {
   beforeEach(async () => {
     await User.deleteMany({})
   })
+  /* [ADMIN]
+  username: administratortest
+  password: administratorpassword
+  mail: administrator@test.com
+  */
+  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
+  const exampleAdminAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
 
-  test("should return empty list if there are no users", (done) => {
+  /* [REGULAR]
+  {
+    "username":"test", 
+    "email": "test@test.com",
+    "password": "testpassword"
+}
+  */
+  const exampleUserAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0Nzg1OWNjMzJhZDk2MGIwNWZhMmJkYyIsInVzZXJuYW1lIjoidGVzdCIsInJvbGUiOiJSZWd1bGFyIiwiaWF0IjoxNjg1NjA4OTE0LCJleHAiOjE2ODYyMTM3MTR9.iCW-B4_BHHYN4lUS0Ny_XP52HVuKdm7nT-ftWIZZUFw";
+  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0Nzg1OWNjMzJhZDk2MGIwNWZhMmJkYyIsInVzZXJuYW1lIjoidGVzdCIsInJvbGUiOiJSZWd1bGFyIiwiaWF0IjoxNjg1NjA4OTE0LCJleHAiOjE2ODYyMTM3MTR9.iCW-B4_BHHYN4lUS0Ny_XP52HVuKdm7nT-ftWIZZUFw";
+
+  test("[ADMIN] should return empty list if there are no users", (done) => {
     request(app)
       .get("/api/users")
+      .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
       .then((response) => {
         expect(response.status).toBe(200)
-        expect(response.body).toHaveLength(0)
+        expect(response.body.data).toHaveLength(0)
         done()
       })
       .catch((err) => done(err))
   })
 
-  test("should retrieve list of all users", (done) => {
+  test("[ADMIN] should retrieve list of all users", (done) => {
     User.create({
       username: "tester",
       email: "test@test.com",
@@ -57,6 +75,7 @@ describe("getUsers", () => {
     }).then(() => {
       request(app)
         .get("/api/users")
+        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
           expect(response.body).toHaveLength(1)
