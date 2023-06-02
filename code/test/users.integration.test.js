@@ -242,7 +242,7 @@ describe("getUser", () => {
           
         
           
-          console.log(response.body)
+          
           //Controllo sui singoli dati
           expect(response.body.data.username).toEqual("administratortest")
           expect(response.body.data.email).toEqual("administrator@test.com")
@@ -295,13 +295,13 @@ describe("getUser", () => {
       username: "tester",
       email: "test@test.com",
       password: "tester",
-      role: "Regular"
-    }).then(() => {
+      role: "Regular"})
+      .then(() => {
       request(app)
         .get("/api/users/tester")
         .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
         .then((response) => {
-          console.log(response)
+          
           expect(response.status).toBe(200)
 
           //Controlli sulla dimensione della risposta (può aspettare sia il refresh token che no)
@@ -327,6 +327,89 @@ describe("getUser", () => {
         .catch((err) => done(err))
     })
   })
+
+  test("[REGULAR](status: 401) should not retrieve other user", (done) => {
+    
+    User.create([{username: "Luigi", email: "luigi.red@email.com", password: "luigi_password", role: "Regular"},
+    {
+      username: "tester",
+      email: "test@test.com",
+      password: "tester",
+      role: "Regular"
+    }],)
+    .then(() => {
+      request(app)
+        .get("/api/users/Luigi")
+        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .then((response) => {
+          
+          expect(response.status).toBe(401)
+
+          //Controlli sulla dimensione della risposta (può aspettare sia il refresh token che no)
+          expect(Object.keys(response.body).length).toBeGreaterThan(0)
+          expect(Object.keys(response.body).length).toBeLessThan(3)         
+          expect(response.body).toHaveProperty("error")
+          
+          
+          done() // Notify Jest that the test is complete
+        })
+        .catch((err) => done(err))
+    })
+  })
+
+  // Problema dato il check dell'autorizzazione prima del check dell'esistenza dell'utente, quindi non riesco mai a testare questo errore per regular
+  // test("[REGULAR](status: 400) user not found", (done) => {
+  //   User.create({
+  //     username: "tester",
+  //     email: "test@test.com",
+  //     password: "tester",
+  //     role: "Regular"
+  //   }).then(() => {
+  //     request(app)
+  //       .get("/api/users/fjdksjao")
+  //       .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+  //       .then((response) => {
+          
+  //         expect(response.status).toBe(400)
+
+  //         //Controlli sulla dimensione della risposta (può aspettare sia il refresh token che no)
+  //         expect(Object.keys(response.body).length).toBeGreaterThan(0)
+  //         expect(Object.keys(response.body).length).toBeLessThan(3)         
+  //         expect(response.body).toHaveProperty("error")
+          
+          
+  //         done() // Notify Jest that the test is complete
+  //       })
+  //       .catch((err) => done(err))
+  //   })
+  // })
+
+  test("[ADMIN](status: 400) user not found", (done) => {
+    User.create({
+      username: "administratortest",
+      email: "administrator@test.com",
+      password: "administratorpassword",
+      role: "Admin"
+    }).then(() => {
+      request(app)
+        .get("/api/users/ecci")
+        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .then((response) => {
+          
+          expect(response.status).toBe(400)
+
+          //Controlli sulla dimensione della risposta (può aspettare sia il refresh token che no)
+          expect(Object.keys(response.body).length).toBeGreaterThan(0)
+          expect(Object.keys(response.body).length).toBeLessThan(3)         
+          expect(response.body).toHaveProperty("error")
+          
+          
+          done() // Notify Jest that the test is complete
+        })
+        .catch((err) => done(err))
+    })
+  })
+
 
 
 
