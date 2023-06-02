@@ -171,7 +171,7 @@ export const createGroup = async (req, res) => {
 export const getGroups = async (req, res) => {
     try {
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-      if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
+      if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
 
 
       const groups = await Group.find();
@@ -485,14 +485,14 @@ export const deleteGroup = async (req, res) => {
     try {
 
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-      if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+      if (!adminAuth.authorized) return res.status(400).json({error: adminAuth.cause});
 
       const {name} = req.body
 
-      if(!name || name.trim() === "") return res.status(400).json({error: "Missing the name of the group"})
+      if(!name || name.trim() === "") return res.status(400).json({error: "Missing the name of the group"});
 
       const existingGroup = await Group.findOne({ name: req.body.name });
-      if (!existingGroup) return res.status(400).json({ message: "The group does not exist!" });
+      if (!existingGroup) return res.status(400).json({ error: "The group does not exist!" });
 
       const del = await Group.findOneAndDelete({ name: name }
       ).then(res.status(200).json({data: {message: "The group has been deleted!"}, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
