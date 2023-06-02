@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app } from '../app';
 import { categories, transactions } from '../models/model';
 import { verifyAuth } from '../controllers/utils';
-import { getAllTransactions } from '../controllers/controller';
+import { getAllTransactions , getCategories} from '../controllers/controller';
 
 jest.mock('../models/model');
 
@@ -34,8 +34,85 @@ describe("deleteCategory", () => {
 })
 
 describe("getCategories", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test('return status 200 and correct data', async () => {
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "authorized" }
+        });
+        const data = [{type: "food", color: "red"}, {type: "health", color: "green"}];
+        jest.spyOn(categories, "find").mockResolvedValue(data);
+
+        await getCategories(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalledWith({data: [{type: "food", color: "red"}, 
+        {type: "health", color: "green"}], 
+        refreshedTokenMessage: "expired token"})
+
+
+    });
+
+    test('return status 200 and empty data with empty db', async () => {
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "authorized" }
+        });
+        const data = [];
+        jest.spyOn(categories, "find").mockResolvedValue(data);
+
+        await getCategories(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalledWith({data: [], 
+        refreshedTokenMessage: "expired token"})
+
+
+    });
+
+    test('return status 401 for not admin call', async () => {
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: false, cause: "Unauthorized" }
+        });
+        const data = [{type: "food", color: "red"}, {type: "health", color: "green"}];
+        jest.spyOn(categories, "find").mockResolvedValue(data);
+
+        await getCategories(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalledWith({error: "Unauthorized"});
+
+
     });
 })
 
