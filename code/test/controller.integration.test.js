@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { app } from '../app';
 import { categories, transactions } from '../models/model';
-import { User } from '../models/User';
+import { Group, User } from '../models/User';
 import mongoose, { Model } from 'mongoose';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
@@ -28,6 +28,7 @@ beforeEach(async () => {
     await categories.deleteMany({})
     await transactions.deleteMany({})
     await User.deleteMany({})
+    await Group.deleteMany({})
 })
 
 const adminAccessTokenValid = jwt.sign({
@@ -278,25 +279,1024 @@ describe("getTransactionsByUser", () => {
     });
 })
 
-//TODO
 describe("getTransactionsByUserByCategory", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+
+    test('Should return status code 200 (admin route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+
+        await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/users/admin/category/food")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveLength(2)
+    });
+
+    test('Should return status code 200 (user route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+
+        await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "tester",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/users/tester/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveLength(1)
+    });
+
+    test('Should return status code 400, user not in the db (admin route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/users/admin/category/food")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, user not in the db (user route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "tester",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/users/tester/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, category not in the db (admin route)', async () => {
+        await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/users/admin/category/food")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, category not in the db (user route)', async () => {
+        await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "tester",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/users/tester/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 401, not admin user on admin route', async () => {
+        await categories.create({ type: "food", color: "red" })
+
+        await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/users/tester/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 401, user differs from one in the route', async () => {
+        await categories.create({ type: "food", color: "red" })
+
+        await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await User.create({username: "tester2",
+        email: "tester2@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/users/tester2/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
     });
 })
 
-//TODO
 describe("getTransactionsByGroup", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+
+    test('Should return status code 200 (admin route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/groups/Family")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveLength(3)
     });
+
+    test('Should return status code 200 (user route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/groups/Family/transactions")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveLength(3)
+    });
+
+    test('Should return status code 400, group not in the db (admin route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/groups/Family")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, group not in the db (user route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/groups/Family/transactions")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 401, user not in the group', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        const u3 = await User.create({username: "tester2",
+        email: "tester2@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester2@test.com",
+                    user: u3._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/groups/Family/transactions")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 401, user is not an admin', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/groups/Family")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
 })
 
-//TODO
 describe("getTransactionsByGroupByCategory", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+
+    test('Should return status code 200 (admin route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/groups/Family/category/food")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveLength(2)
     });
+
+    test('Should return status code 200 (user route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/groups/Family/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveLength(2)
+    });
+
+    test('Should return status code 400, group not in the db (admin route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/groups/Family/category/food")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, group not in the db (user route)', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/groups/Family/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, category not in the db (admin route)', async () => {
+        
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/groups/Family/category/food")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, category not in the db (user route)', async () => {
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/groups/Family/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 401, user not in the group', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        const u3 = await User.create({username: "tester2",
+        email: "tester2@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester2@test.com",
+                    user: u3._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/groups/Family/transactions/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 401, user is not an admin', async () => {
+        await categories.create({ type: "food", color: "red" })
+        await categories.create({ type: "entertainment", color: "blue" })
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const u2 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        await Group.create({
+            name: "Family",
+            members: [
+                {
+                    email: "admin@email.com",
+                    user: u1._id
+                },
+                {
+                    email: "tester@test.com",
+                    user: u2._id
+                }
+            ] 
+        })
+        await transactions.insertMany([{
+            username: "tester",
+            type: "food",
+            amount: 20
+        }, {
+            username: "admin",
+            type: "entertainment",
+            amount: 100
+        }, {
+            username: "admin",
+            type: "food",
+            amount: 100
+        }, {
+            username: "admin2",
+            type: "food",
+            amount: 60
+        }])
+
+        const response = await request(app)
+        .get("/api/transactions/groups/Family/category/food")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
 })
 
 //TODO
