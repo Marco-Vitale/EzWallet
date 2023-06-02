@@ -16,18 +16,18 @@ import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./
 export const createCategory = async (req, res) => {
     try {
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-        if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
+        if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
         
         const { type, color } = req.body;
         if(!type || !color || type.trim() === "" || color.trim() === "") return res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
         const retrieveCategory = await categories.findOne({type: type});
-        if (retrieveCategory) res.status(400).json({error: `Invalid input values, a category of type ${type} already exists`});
+        if (retrieveCategory) return res.status(400).json({error: `Invalid input values, a category of type ${type} already exists`});
 
-        const new_categories = new categories({ type, color });
-        new_categories.save()
-            .then(data => res.json(data))
-            .catch(err => { throw err })
+        const result =  await categories.create({
+            type: type,
+            color: color
+          });
 
         res.status(200).json({data: {type: type, color: color}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
     } catch (error) {
@@ -149,7 +149,7 @@ export const deleteCategory = async (req, res) => {
 export const getCategories = async (req, res) => {
     try {
         const auth = verifyAuth(req, res, { authType: "Simple" });
-        if (!auth.authorized) res.status(401).json({error: auth.cause});
+        if (!auth.authorized) return res.status(401).json({error: auth.cause});
 
         let data = await categories.find({})
 
@@ -178,33 +178,32 @@ export const getCategories = async (req, res) => {
 export const createTransaction = async (req, res) => {
     try {
         const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username});
-        if (!userAuth.authorized) res.status(401).json({error: userAuth.cause});
+        if (!userAuth.authorized) return res.status(401).json({error: userAuth.cause});
         
         const { username, amount, type } = req.body;
         if(!username || !amount || !type || username.trim() === "" || type.trim() === "") 
             return res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
-        if (isNaN(parseFloat(amount))) res.status(400).json({error: "Error in casting amount to float"});
+        if (isNaN(parseFloat(amount))) return res.status(400).json({error: "Error in casting amount to float"});
 
         const retrieveCategory = await categories.findOne({type: type});
-        if (!retrieveCategory) res.status(400).json({error: "Category doesn't exist"});
+        if (!retrieveCategory) return res.status(400).json({error: "Category doesn't exist"});
 
         const usernameParam = req.params.username;
-        if (usernameParam !== username) res.status(400).json({error: "the username passed in the request body is not equal to the one passed as a route parameter"});
+        if (usernameParam !== username) return res.status(400).json({error: "the username passed in the request body is not equal to the one passed as a route parameter"});
 
         const retrieveUserParam = await User.findOne({username: usernameParam});
-        if (!retrieveUserParam) res.status(400).json({error: "User doesn't exist"});
+        if (!retrieveUserParam) return res.status(400).json({error: "User doesn't exist"});
         
         const new_transactions = new transactions({ username, amount, type });
-        new_transactions.save()
-            .then(data => res.json(data))
-            .catch(err => { throw err })
+        
+        const result = await transactions.create(new_transactions);
 
         res.status(200).json({
             data: {
-                username: new_transactions.username,
-                amount: new_transactions.amount,
-                type: new_transactions.type,
+                username: username,
+                amount: amount,
+                type: type,
                 date: new_transactions.date
             }, 
             refreshedTokenMessage: res.locals.refreshedTokenMessage});
