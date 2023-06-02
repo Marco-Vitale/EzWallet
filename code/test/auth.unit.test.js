@@ -154,7 +154,7 @@ describe("registerAdmin", () => {
         expect(mockRes.json).toHaveBeenCalledWith({ error: "The email format is not valid!" })
 });
 
-test('status 400 if there is an already existing user', async () => {
+test('status 400 if there is an already existing email', async () => {
     const mockReq = {
         body: {username: "admin", email: "prova@gmail.it", password: "securePass"}
     }
@@ -183,6 +183,38 @@ test('status 400 if there is an already existing user', async () => {
     await registerAdmin(mockReq, mockRes);
     expect(mockRes.status).toHaveBeenCalledWith(400);
     expect(mockRes.json).toHaveBeenCalledWith({ error: "The mail is already used!" })
+});
+
+test('status 400 if there is an already existing username', async () => {
+  const mockReq = {
+      body: {username: "admin", email: "prova@gmail.it", password: "securePass"}
+  }
+  const mockRes = {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+    locals: {
+      refreshedTokenMessage: "expired token"
+    }
+  }
+
+  verifyEmail.mockImplementation((email) => {
+      return true;
+    });
+
+  const newUser = {
+      
+          username: "admin",
+          email: "admin@email.com",
+          password: "securePass",
+          role: "Admin"
+  }
+  jest.spyOn(User, "findOne").mockResolvedValueOnce(undefined);
+  jest.spyOn(User, "findOne").mockResolvedValueOnce(newUser);
+  jest.spyOn(bcrypt, "hash").mockResolvedValue("securePass")
+  jest.spyOn(User, "create").mockResolvedValue(true);
+  await registerAdmin(mockReq, mockRes);
+  expect(mockRes.status).toHaveBeenCalledWith(400);
+  expect(mockRes.json).toHaveBeenCalledWith({ error: "The username is already used!" })
 });
         
 })

@@ -245,7 +245,7 @@ export const getAllTransactions = async (req, res) => {
             },
             { $unwind: "$categories_info" }
         ]).then((result) => {
-            let data = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+            let data = result.map(v => Object.assign({}, { username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
             res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
         }).catch(error => { throw (error) })
     } catch (error) {
