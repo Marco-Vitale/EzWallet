@@ -18,6 +18,7 @@ jest.mock("../controllers/utils.js");
  */
 beforeEach(() => {
   User.find.mockClear()
+  User.findOne.mockClear()
   //additional `mockClear()` must be placed here
 });
 
@@ -88,9 +89,11 @@ describe("getUsers", () => {
 })
 
 describe("getUser", () => { 
-
-test("should retrive himself and return status 200", async () => {
+  test("(status 200) should retrieve another user if i have auth", async () => {
     const mockReq = {
+      params: {
+        username: "Mario"
+      }
     }
     const mockRes = {
       status: jest.fn().mockReturnThis(),
@@ -99,12 +102,73 @@ test("should retrive himself and return status 200", async () => {
         refreshedTokenMessage: "expired token"
       }
     }
-    jest.spyOn(User, "find").mockResolvedValue([])
-    await getUsers(mockReq, mockRes)
-    expect(User.find).toHaveBeenCalled()
+
+    verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+  
+    const retrievedUsers = {username: mockReq.params.username, email: "mario.red@email.com", role: "Regular"}
+    
+    jest.spyOn(User, "findOne").mockResolvedValue(retrievedUsers) //Quando viene chiamato find su User viene simulata la risposta di un valore dato ovvero il retrievedUsers
+    
+    await getUser(mockReq, mockRes)
+    
+    expect(User.findOne).toHaveBeenCalled()
     expect(mockRes.status).toHaveBeenCalledWith(200)
-    expect(mockRes.json).toHaveBeenCalledWith({ data: [], message: mockRes.locals.refreshedTokenMessage})
+    expect(mockRes.json).toHaveBeenCalledWith({ data: retrievedUsers, refreshedTokenMessage: mockRes.locals.refreshedTokenMessage})
   })
+
+  test("(status 400) user not found, should retreive an error", async () => {
+    const mockReq = {
+      params: {
+        username: "Mario"
+      }
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+
+    verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+  
+    
+    jest.spyOn(User, "findOne").mockResolvedValue(undefined) //Quando viene chiamato find su User viene simulata la risposta di un valore dato ovvero il retrievedUsers
+    
+    await getUser(mockReq, mockRes)
+    
+    expect(User.findOne).toHaveBeenCalled()
+    expect(mockRes.status).toHaveBeenCalledWith(400)
+    expect(mockRes.json).toHaveBeenCalledWith({ error:"User not found"})
+  })
+
+  test("(status 401) no auth", async () => {
+    const mockReq = {
+      params: {
+        username: "Mario"
+      }
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+
+    verifyAuth.mockReturnValue({ authorized: false, cause: "Unauthorized" })
+    const retrievedUsers = {username: mockReq.params.username, email: "mario.red@email.com", role: "Regular"}
+    
+    jest.spyOn(User, "findOne").mockResolvedValue(retrievedUsers) //Quando viene chiamato find su User viene simulata la risposta di un valore dato ovvero il retrievedUsers
+    
+    await getUser(mockReq, mockRes)
+    
+    
+    expect(mockRes.status).toHaveBeenCalledWith(401)
+    expect(mockRes.json).toHaveBeenCalledWith({ error:"Unauthorized"})
+  })
+  
+
 
 })
 
