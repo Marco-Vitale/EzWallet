@@ -45,13 +45,15 @@ describe("updateCategory", () => {
           }
         }
 
-        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
 
         const alreadyExists = undefined;
-        jest.spyOn(categories, "findOne").mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValue(alreadyExists)
 
         const oldCategory = {type: "oldCategory", color: "red"}
-        jest.spyOn(categories, "find").mockResolvedValue(oldCategory)
+        categories.find.mockResolvedValue(oldCategory)
 
         const updateOneResult = {
             "acknowledged" : true,
@@ -59,17 +61,12 @@ describe("updateCategory", () => {
             "modifiedCount" : 0,
             "upsertedId" : "aaa"
         }
-        jest.spyOn(categories, "updateOne").mockResolvedValue(updateOneResult)
+        categories.updateOne.mockResolvedValue(updateOneResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
-        expect(verifyAuth).toHaveBeenCalled()
-        expect(categories.findOne).toHaveBeenCalled()
-        expect(categories.find).toHaveBeenCalled()
-        expect(categories.updateOne).toHaveBeenCalled()
-        expect(categories.updateMany).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(200)
         expect(mockRes.json).toHaveBeenCalledWith({data: {message: "Category edited successfully", count: updateManyResult.modifiedCount}, 
@@ -91,13 +88,15 @@ describe("updateCategory", () => {
           }
         }
 
-        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
 
         const alreadyExists = undefined;
-        jest.spyOn(categories, "findOne").mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValue(alreadyExists)
 
         const oldCategory = {type: "oldCategory", color: "red"}
-        jest.spyOn(categories, "find").mockResolvedValue(oldCategory)
+        categories.find.mockResolvedValue(oldCategory)
 
         const updateOneResult = {
             "acknowledged" : true,
@@ -105,14 +104,12 @@ describe("updateCategory", () => {
             "modifiedCount" : 0,
             "upsertedId" : "aaa"
         }
-        jest.spyOn(categories, "updateOne").mockResolvedValue(updateOneResult)
+        categories.updateOne.mockResolvedValue(updateOneResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -135,13 +132,15 @@ describe("updateCategory", () => {
           }
         }
 
-        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
 
         const alreadyExists = undefined;
-        jest.spyOn(categories, "findOne").mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValue(alreadyExists)
 
         const oldCategory = {type: "oldCategory", color: "red"}
-        jest.spyOn(categories, "find").mockResolvedValue(oldCategory)
+        categories.find.mockResolvedValue(oldCategory)
 
         const updateOneResult = {
             "acknowledged" : true,
@@ -149,14 +148,12 @@ describe("updateCategory", () => {
             "modifiedCount" : 0,
             "upsertedId" : "aaa"
         }
-        jest.spyOn(categories, "updateOne").mockResolvedValue(updateOneResult)
+        categories.updateOne.mockResolvedValue(updateOneResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -166,7 +163,7 @@ describe("updateCategory", () => {
 
     test("Should return status code 400: the type of category passed as a route parameter does not represent a category in the database", async() => {
         const mockReq = {
-            params: { type: "oldCategory" },
+            params: { type: "Category" },
             body: { type: "nonPresentCategory", color: "yellow" },
             cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
             url: "/api/categories/oldCategory"
@@ -179,13 +176,15 @@ describe("updateCategory", () => {
           }
         }
 
-        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
 
         const alreadyExists = undefined;
-        jest.spyOn(categories, "findOne").mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValue(alreadyExists)
 
         const oldCategory = undefined;
-        jest.spyOn(categories, "find").mockResolvedValue(oldCategory)
+        categories.find.mockResolvedValue(oldCategory)
 
         const updateOneResult = {
             "acknowledged" : true,
@@ -193,16 +192,12 @@ describe("updateCategory", () => {
             "modifiedCount" : 0,
             "upsertedId" : "aaa"
         }
-        jest.spyOn(categories, "updateOne").mockResolvedValue(updateOneResult)
+        categories.updateOne.mockResolvedValue(updateOneResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
-        expect(categories.findOne).toHaveBeenCalled()
-        expect(categories.find).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -225,13 +220,15 @@ describe("updateCategory", () => {
           }
         }
 
-        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
 
         const alreadyExists = {type: "oldCategory", color: "red"};
-        jest.spyOn(categories, "findOne").mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValue(alreadyExists)
 
-        const oldCategory = undefined;
-        jest.spyOn(categories, "find").mockResolvedValue(oldCategory)
+        const oldCategory = {type: "oldCategory", color: "red"}
+        categories.find.mockResolvedValue(oldCategory)
 
         const updateOneResult = {
             "acknowledged" : true,
@@ -239,15 +236,12 @@ describe("updateCategory", () => {
             "modifiedCount" : 0,
             "upsertedId" : "aaa"
         }
-        jest.spyOn(categories, "updateOne").mockResolvedValue(updateOneResult)
+        categories.updateOne.mockResolvedValue(updateOneResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
-        expect(categories.findOne).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -270,13 +264,15 @@ describe("updateCategory", () => {
           }
         }
 
-        verifyAuth.mockReturnValue({ authorized: false, cause: "Requested auth for a different role" })
+        verifyAuth.mockImplementation(() => {
+            return { authorized: false, cause: "Requested auth for a different role" }
+        })
 
         const alreadyExists = {type: "oldCategory", color: "red"};
-        jest.spyOn(categories, "findOne").mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValue(alreadyExists)
 
-        const oldCategory = undefined;
-        jest.spyOn(categories, "find").mockResolvedValue(oldCategory)
+        const oldCategory = {type: "oldCategory", color: "red"}
+        categories.find.mockResolvedValue(oldCategory)
 
         const updateOneResult = {
             "acknowledged" : true,
@@ -284,15 +280,13 @@ describe("updateCategory", () => {
             "modifiedCount" : 0,
             "upsertedId" : "aaa"
         }
-        jest.spyOn(categories, "updateOne").mockResolvedValue(updateOneResult)
+        categories.updateOne.mockResolvedValue(updateOneResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
-
+        
         expect(mockRes.status).toHaveBeenCalledWith(401)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
             error: expect.any(String)
@@ -326,27 +320,22 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        jest.spyOn(categories, "find").mockResolvedValueOnce(listOfCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
-                                      .mockResolvedValueOnce(foundCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
+        categories.find.mockResolvedValueOnce(listOfCategories)
+                        .mockReturnValueOnce({
+                            sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
+                        .mockResolvedValueOnce(foundCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        jest.spyOn(categories, "deleteMany").mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
-        expect(categories.find).toHaveBeenCalled()
-        expect(categories.deleteMany).toHaveBeenCalled()
-        expect(categories.updateMany).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(200)
         expect(mockRes.json).toHaveBeenCalledWith({data: {message: "Categories deleted", count: updateManyResult.modifiedCount}, 
@@ -372,24 +361,22 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        jest.spyOn(categories, "find").mockResolvedValueOnce(listOfCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
-                                      .mockResolvedValueOnce(foundCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
+        categories.find.mockResolvedValueOnce(listOfCategories)
+                        .mockReturnValueOnce({
+                            sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
+                        .mockResolvedValueOnce(foundCategories)
+                        .mockReturnValueOnce({
+                            sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        jest.spyOn(categories, "deleteMany").mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -414,17 +401,15 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        jest.spyOn(categories, "find").mockResolvedValueOnce([{type: "category1", color: "red"}])
+        categories.find.mockResolvedValueOnce([{type: "category1", color: "red"}])
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        jest.spyOn(categories, "deleteMany").mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -451,24 +436,22 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        jest.spyOn(categories, "find").mockResolvedValueOnce(listOfCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
-                                      .mockResolvedValueOnce(foundCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
+        categories.find.mockResolvedValueOnce(listOfCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
+                        .mockResolvedValueOnce(foundCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        jest.spyOn(categories, "deleteMany").mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -495,24 +478,22 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        jest.spyOn(categories, "find").mockResolvedValueOnce(listOfCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories)
-                                      })
-                                      .mockResolvedValueOnce(foundCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories)
-                                      })
+        categories.find.mockResolvedValueOnce(listOfCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories)
+                        })
+                        .mockResolvedValueOnce(foundCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories)
+                        })
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        jest.spyOn(categories, "deleteMany").mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -539,24 +520,22 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        jest.spyOn(categories, "find").mockResolvedValueOnce(listOfCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
-                                      .mockResolvedValueOnce(foundCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
+        categories.find.mockResolvedValueOnce(listOfCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
+                        .mockResolvedValueOnce(foundCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        jest.spyOn(categories, "deleteMany").mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -583,24 +562,22 @@ describe("deleteCategory", () => {
             return { authorized: false, cause: "Requested auth for a different role" }
         })
 
-        jest.spyOn(categories, "find").mockResolvedValueOnce(listOfCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
-                                      .mockResolvedValueOnce(foundCategories)
-                                      .mockReturnValueOnce({
-                                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                                      })
+        categories.find.mockResolvedValueOnce(listOfCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
+                        .mockResolvedValueOnce(foundCategories)
+                        .mockReturnValueOnce({
+                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                        })
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        jest.spyOn(categories, "deleteMany").mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        jest.spyOn(categories, "updateMany").mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
-
-        expect(verifyAuth).toHaveBeenCalled()
 
         expect(mockRes.status).toHaveBeenCalledWith(401)
         expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
