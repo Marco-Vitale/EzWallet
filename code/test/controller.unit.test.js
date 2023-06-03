@@ -3,7 +3,7 @@ import { app } from '../app';
 import { categories, transactions } from '../models/model';
 import { User } from '../models/User';
 import { verifyAuth } from '../controllers/utils';
-import { createCategory, createTransaction } from '../controllers/controller';
+import { createCategory, createTransaction, deleteTransaction } from '../controllers/controller';
 
 jest.mock('../models/model');
 jest.mock("../models/User.js");
@@ -453,11 +453,247 @@ describe("getTransactionsByGroupByCategory", () => {
     });
 })
 
-//TODO
 describe("deleteTransaction", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test("Should return status code 200", async () => {
+
+        const mockReq = {
+            params: {username: "Mario"},
+            body: {_id: "6hjkohgfc8nvu786"},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+            locals: {
+              refreshedTokenMessage: ""
+            }
+        }
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+/*
+        const mockUser = {
+            username: "Mario",
+            email: "xxx@yyyy.it",
+            password: "xxxxxxx",
+            refreshToken: "xxxx",
+            role:"Regular"
+        }
+        User.findOne.mockResolvedValueOnce(mockUser)
+
+        const mockTrans = {
+            username: "Mario",
+            amount: 100,
+            type: "food",
+            date: "2023-05-19T00:00:00",
+            _id: "6hjkohgfc8nvu786"
+        }
+
+        transactions.findOne(mockTrans)
+*/
+        transactions.deleteOne.mockResolvedValueOnce({_id: "6hjkohgfc8nvu786"});
+
+        await deleteTransaction(mockReq,mockRes)
+
+        expect(verifyAuth).toHaveBeenCalled()
+        /*
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(transactions.findOne).toHaveBeenCalled()
+        */
+        expect(transactions.deleteOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(200)
+        expect(mockRes.json).toHaveBeenCalledWith({data: {message: "Transaction deleted"}})
     });
+
+    test.skip("Should return status code 400, missing body parameters", async () => {
+
+        const mockReq = {
+            params: {username: "Mario"},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+            locals: {
+              refreshedTokenMessage: ""
+            }
+        }
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+        await deleteTransaction(mockReq,mockRes)
+
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test.skip("Should return status code 400, empty id", async () => {
+
+        const mockReq = {
+            params: {username: "Mario"},
+            body: {_id: " "},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+            locals: {
+              refreshedTokenMessage: ""
+            }
+        }
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+        await deleteTransaction(mockReq,mockRes)
+
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test.skip("Should return status code 400, user not in the db", async () => {
+
+        const mockReq = {
+            params: {username: "Mario"},
+            body: {_id: "6hjkohgfc8nvu786"},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+            locals: {
+              refreshedTokenMessage: ""
+            }
+        }
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+
+        User.findOne.mockResolvedValueOnce(null)
+
+        await deleteTransaction(mockReq,mockRes)
+
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(User.findOne).toHaveBeenCalled()
+        
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test.skip("Should return status code 400, transaction not in the db", async () => {
+
+        const mockReq = {
+            params: {username: "Mario"},
+            body: {_id: "6hjkohgfc8nvu786"},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+            locals: {
+              refreshedTokenMessage: ""
+            }
+        }
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+        const mockUser = {
+            username: "Mario",
+            email: "xxx@yyyy.it",
+            password: "xxxxxxx",
+            refreshToken: "xxxx",
+            role:"Regular"
+        }
+        User.findOne.mockResolvedValueOnce(mockUser)
+
+        transactions.findOne(null)
+
+        await deleteTransaction(mockReq,mockRes)
+
+        expect(verifyAuth).toHaveBeenCalled()
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(transactions.findOne).toHaveBeenCalled()
+        
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test.skip("Should return status code 400, transaction belong to a different user", async () => {
+
+        const mockReq = {
+            params: {username: "Mario"},
+            body: {_id: "6hjkohgfc8nvu786"},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+            locals: {
+              refreshedTokenMessage: ""
+            }
+        }
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+        const mockUser = {
+            username: "Mario",
+            email: "xxx@yyyy.it",
+            password: "xxxxxxx",
+            refreshToken: "xxxx",
+            role:"Regular"
+        }
+        User.findOne.mockResolvedValueOnce(mockUser)
+
+        const mockTrans = {
+            username: "Luigi",
+            amount: 100,
+            type: "food",
+            date: "2023-05-19T00:00:00",
+            _id: "6hjkohgfc8nvu786"
+        }
+
+        transactions.findOne(mockTrans)
+        transactions.deleteOne.mockResolvedValueOnce({_id: "6hjkohgfc8nvu786"});
+
+        await deleteTransaction(mockReq,mockRes)
+
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(transactions.findOne).toHaveBeenCalled()
+        expect(transactions.deleteOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test.skip("Should return status code 400, user is not the same as the route", async () => {
+
+        const mockReq = {
+            params: {username: "Mario"},
+            body: {_id: "6hjkohgfc8nvu786"},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+            locals: {
+              refreshedTokenMessage: ""
+            }
+        }
+
+        verifyAuth.mockReturnValue({ authorized: false, cause: "Requested auth for a different user" })
+
+        await deleteTransaction(mockReq,mockRes)
+
+        expect(verifyAuth).toHaveBeenCalled()        
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
 })
 
 //TODO
