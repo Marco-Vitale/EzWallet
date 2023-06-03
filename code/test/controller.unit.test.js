@@ -3,7 +3,7 @@ import { app } from '../app';
 import { categories, transactions } from "../models/model";
 import { Group, User, UserSchema } from "../models/User.js";
 import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "../controllers/utils.js";
-import { updateCategory, deleteCategory } from '../controllers/controller.js';
+import { updateCategory, deleteCategory, getTransactionsByUser } from '../controllers/controller.js';
 
 jest.mock("../models/model");
 jest.mock("../models/User.js");
@@ -11,6 +11,8 @@ jest.mock("../controllers/utils.js");
 
 jest.mock('../controllers/utils.js', () => ({
     verifyAuth: jest.fn(),
+    handleAmountFilterParams: jest.fn(),
+    handleDateFilterParams: jest.fn()
 }))
 
 beforeEach(() => {
@@ -605,8 +607,165 @@ describe("getAllTransactions", () => {
 })
 
 describe("getTransactionsByUser", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    const userTransactions = [
+        {username: "test1", amount: 100, type: "category1", date: "2023-05-19T00:00:00", categories_info: {color: "red"}}, 
+        {username: "test1", amount: 70,  type: "category2", date: "2023-06-19T10:00:00", categories_info: {color: "green"}},
+        {username: "test1", amount: 20,  type: "category1", date: "2023-07-19T10:00:00", categories_info: {color: "red"}}
+    ]
+
+    test("Admin route: Should return status code 200", async() => {
+        const mockReq = {
+            params: { username: "test1" },
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/users/test1" // admin route
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
+
+        User.findOne.mockResolvedValue({username: "test1"})
+        transactions.aggregate.mockResolvedValueOnce(userTransactions)
+
+        await getTransactionsByUser(mockReq, mockRes)
+
+        expect(mockRes.status).toHaveBeenCalledWith(200)
+        expect(mockRes.json).toHaveBeenCalledWith({ data: [
+                                                        {username: "test1", amount: 100, type: "category1", date: "2023-05-19T00:00:00", color: "red"}, 
+                                                        {username: "test1", amount: 70,  type: "category2", date: "2023-06-19T10:00:00", color: "green"},
+                                                        {username: "test1", amount: 20,  type: "category1", date: "2023-07-19T10:00:00", color: "red"}
+                                                    ], refreshedTokenMessage: mockRes.locals.refreshedTokenMessage});
+    });
+
+    test("User router: Should return status code 200", async() => {
+        const mockReq = {
+            params: { username: "test1" },
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/users/test1/transactions" // user route
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
+
+        User.findOne.mockResolvedValue({username: "test1"})
+        transactions.aggregate.mockResolvedValueOnce(userTransactions)
+
+        handleAmountFilterParams.mockImplementation(() => { return {} })
+
+        handleDateFilterParams.mockImplementation(() => { return {} })
+
+        await getTransactionsByUser(mockReq, mockRes)
+
+        expect(mockRes.status).toHaveBeenCalledWith(200)
+        expect(mockRes.json).toHaveBeenCalledWith({ data: [
+                                                        {username: "test1", amount: 100, type: "category1", date: "2023-05-19T00:00:00", color: "red"}, 
+                                                        {username: "test1", amount: 70,  type: "category2", date: "2023-06-19T10:00:00", color: "green"},
+                                                        {username: "test1", amount: 20,  type: "category1", date: "2023-07-19T10:00:00", color: "red"}
+                                                    ], refreshedTokenMessage: mockRes.locals.refreshedTokenMessage});
+    });
+
+    test("Should return status code 400: the username passed as a route parameter does not represent a user in the database", async() => {
+        const mockReq = {
+            params: { username: "errTest" },
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/users/errTest"
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
+
+        User.findOne.mockResolvedValue(undefined)
+
+        await getTransactionsByUser(mockReq, mockRes)
+
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
+            error: expect.any(String)
+        }))
+    });
+
+    test("Should return status code 401: called by an authenticated user who is not the same user as the one in the route (authType = User) if the route is `/api/users/:username/transactions`", async() => {
+        const mockReq = {
+            params: { username: "test1" },
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/users/test1/transactions"
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: false, cause: "Requested auth for a different user" }
+        })
+
+        User.findOne.mockResolvedValue({username: "test1"})
+
+        await getTransactionsByUser(mockReq, mockRes)
+
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
+            error: expect.any(String)
+        }))
+    });
+
+    test("Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) if the route is `/api/transactions/users/:username`", async() => {
+        const mockReq = {
+            params: { username: "test1" },
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/users/test1"
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: false, cause: "Requested auth for a different role" }
+        })
+
+        User.findOne.mockResolvedValue({username: "test1"})
+
+        await getTransactionsByUser(mockReq, mockRes)
+
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
+            error: expect.any(String)
+        }))
     });
 })
 
