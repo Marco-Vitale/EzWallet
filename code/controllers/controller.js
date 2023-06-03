@@ -3,6 +3,7 @@ import { Group, User, UserSchema } from "../models/User.js";
 import { getGroup } from "./users.js";
 import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./utils.js";
 
+
 /**
  * Create a new category
   - Request Body Content: An object having attributes `type` and `color`
@@ -618,24 +619,66 @@ export const deleteTransaction = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
         
-        const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username})
-        const adminAuth = verifyAuth(req, res, {authType: "Admin"})
-
-        if (!adminAuth){
-           if(!userAuth){
-            throw new Error('User can not perform this operation on other user (admin required)');
-           }
+        const username = req.params.username;
+        const curAuthUser = req.params.username;
+        const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
+        const userAuth = verifyAuth(req, res, {authType: "User", username: curAuthUser})         
+       
+        
+        //Returns a 401 error if the user is not the user whose transactions are being deleted nor an admin
+        if(!(adminAuth.authorized || userAuth.authorized)){
+            return res.status(401).json({ error: "Forbidden operation: you are not the user nor an admin" });
         }
-        
+
+        //ROUTE: /users/:username/transactions
+        if(req.url.indexOf("users/"+username+"/transactions")>=0){
             
+            return res.status(400).json({ error: "Bad request" });
+            
+        }  
         
-
+    
 
         
+        //Returns a 400 error if the request body does not contain all the necessary attributes
+        if(!Object.keys(req.body).includes("_id" )){
+            return res.status(400).json({ error: "Bad request: _id information missing" });
+        }
+        const id = req.body._id;
+        //Returns a 400 error if the `_id` in the request body is an empty string
+        if (!id) {
+            return res.status(400).json({ error: "Bad request: _id is an empty string" });
+        }
 
-        let data = await transactions.deleteOne({ _id: req.body._id });
-        return res.json("deleted");
-    } catch (error) {
+        //Returns a 400 error if the username passed as a route parameter does not represent a user in the database
+        if(User.findOne({ username: username }) == null){
+            return res.status(400).json({ error: "Bad request: username not found" });
+        }
+      
+
+        
+       
+        //Returns a 400 error if the `_id` in the request body does not represent a transaction in the database
+        
+        const tran = await transactions.findById(id);
+        console.log(tran); 
+        //Returns a 400 error if the `_id` in the request body represents a transaction made by a different user than the one in the route
+        if(tran.username != username){
+             return res.status(400).json({ error: "Bad request: not my transaction" });
+        }
+
+        //Returns a 401 error if called by an authenticated user who is not the same user as the one in the route (authType = User)
+        if(tran.username != username){
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+
+        await transactions.deleteOne({ _id: req.body._id });
+
+        return res.status(200).json({data: {message: "Transaction deleted"}, refreshedTokenMessage: res.locals.refreshedTokenMessage})
+    }
+        
+    catch (error) {
         res.status(500).json({error: error.message})    
     }
 }
@@ -650,17 +693,65 @@ export const deleteTransaction = async (req, res) => {
 export const deleteTransactions = async (req, res) => {
     try {
         const cookie = req.cookies
-        const adminAuth = verifyAuth(req, res, {authType: "Admin"})
-
-        if (!cookie.accessToken && adminAuth) {
+        if (!cookie.accessToken) {
             return res.status(401).json({ message: "Unauthorized" }) // unauthorized
         }
-        req.body.forEach(el => {
-            transactions.deleteOne({_id: el});
-        })
+        
+        const adminAuth = verifyAuth(req, res, {authType: "Admin"})     
+        
+        //Returns a 401 error if the user is not the user whose transactions are being deleted nor an admin
+        if(!(adminAuth.authorized)){
+            return res.status(401).json({ error: "Admin privileges required" });
+        }            
+
+        const ids = req.body._ids;                 
+        
+        //Returns a 400 error if the request body does not contain all the necessary attributes
+        if(!Object.keys(req.body).includes("_ids" )){
+            return res.status(400).json({ error: "Bad request: request body does not contain all the necessary attributes" });
+        }
+        if (!Array.isArray(ids)) {
+            return res.status(400).json({ error: "Bad request: 'ids' should be an array" });
+          }
+          
+    
+        for (const id of ids) {
+            if(id==null){
+                return res.status(400).json({ error: "Bad request: _id information missing" });
+            }
+
+            const transaction = await transactions.findById(id);
+            if (transaction === null) {
+            console.log("Transaction does not exist.");
+            return res.status(400).json({ error: "Id not found in the system: " + id + ". No operation performed." });
+            } else {
+            console.log("Transaction found:", transaction);
+            }
+           
             
-        return res.json("deleted");
-    } catch (error) {
+        }
+                
+   
+        ids.forEach((id) => {
+            transactions.deleteOne({ _id: id })
+              .then(() => {
+                console.log(`Transaction with ID ${id} deleted successfully.`);
+              })
+              .catch((err) => {
+                console.error(`Failed to delete transaction with ID ${id}:`, err);
+              });
+          });
+               
+
+        
+
+        return res.status(200).json({data: {message: "Transactions deleted"}, refreshedTokenMessage: res.locals.refreshedTokenMessage})
+    }
+        
+    catch (error) {
         res.status(500).json({error: error.message})    
     }
 }
+    
+    
+    
