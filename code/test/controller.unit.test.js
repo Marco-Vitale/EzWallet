@@ -165,8 +165,8 @@ describe("updateCategory", () => {
 
     test("Should return status code 400: the type of category passed as a route parameter does not represent a category in the database", async() => {
         const mockReq = {
-            params: { type: "Category" },
-            body: { type: "nonPresentCategory", color: "yellow" },
+            params: { type: "nonPresentCategory" },
+            body: { type: "newCategory", color: "yellow" },
             cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
             url: "/api/categories/oldCategory"
         }
@@ -210,7 +210,7 @@ describe("updateCategory", () => {
     test("Should return status code 400: the type of category passed in the request body as the new type represents an already existing category in the database and that category is not the same as the requested one", async() => {
         const mockReq = {
             params: { type: "oldCategory" },
-            body: { type: "nonPresentCategory", color: "yellow" },
+            body: { type: "alreadyPresentCategory", color: "yellow" },
             cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
             url: "/api/categories/oldCategory"
         }
