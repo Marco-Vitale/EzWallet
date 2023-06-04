@@ -1,8 +1,9 @@
 import request from 'supertest';
 import { app } from '../app';
-import { User } from '../models/User.js';
-import {getUsers, getUser} from '../controllers/users';
-import {verifyAuth} from '../controllers/utils';
+import { User, Group } from '../models/User.js';
+import { getUsers, getUser } from '../controllers/users';
+import { verifyAuth } from '../controllers/utils';
+import { getGroup } from '../controllers/users';
 /**
  * In order to correctly mock the calls to external modules it is necessary to mock them using the following line.
  * Without this operation, it is not possible to replace the actual implementation of the external functions with the one
@@ -176,7 +177,77 @@ describe("createGroup", () => { })
 
 describe("getGroups", () => { })
 
-describe("getGroup", () => { })
+describe("getGroup", () => { 
+
+  test("(status 200) should return all the group information", async () => {
+    const mockReq = {
+      params: { 
+        name: "Family"}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+    const resolvedValue = {name: "Family", members: [{email: "mario.red@email.com"}, {email: "luigi.red@email.com"}]}
+
+    jest.spyOn(Group, "findOne").mockResolvedValue(resolvedValue)
+    await getGroup(mockReq, mockRes)
+    expect(Group.findOne).toHaveBeenCalled()
+    expect(mockRes.status).toHaveBeenCalledWith(200)
+    expect(mockRes.json).toHaveBeenCalledWith({ data: resolvedValue, refreshedTokenMessage: mockRes.locals.refreshedTokenMessage})
+  })
+
+  test("(400) group not in the database", async () => {
+    const mockReq = {
+      params: { 
+        name: "Family"}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+    const resolvedValue = undefined; 
+
+    jest.spyOn(Group, "findOne").mockResolvedValue(resolvedValue)
+    await getGroup(mockReq, mockRes)
+    expect(Group.findOne).toHaveBeenCalled(resolvedValue)
+    expect(mockRes.status).toHaveBeenCalledWith(400)
+    
+    expect(mockRes.json).toHaveBeenCalledWith({ error: "Group not found"})
+  })
+
+  test("(401) group doesn't have auth ", async () => {
+    const mockReq = {
+      params: { 
+        name: "Family"}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    verifyAuth.mockReturnValue({ authorized: false, cause: "Unauthorized" })
+    const resolvedValue = {name: "Family", members: [{email: "mario.red@email.com"}, {email: "luigi.red@email.com"}]}
+
+    jest.spyOn(Group, "findOne").mockResolvedValue(resolvedValue)
+    await getGroup(mockReq, mockRes)
+    expect(Group.findOne).toHaveBeenCalled()
+    expect(mockRes.status).toHaveBeenCalledWith(401)
+    
+    expect(mockRes.json).toHaveBeenCalledWith({ error: "Unauthorized"})
+  })
+
+})
 
 describe("addToGroup", () => { })
 
