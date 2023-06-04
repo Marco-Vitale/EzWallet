@@ -1,8 +1,10 @@
 import request from 'supertest';
 import { app } from '../app';
-import { categories, transactions } from '../models/model';
-import mongoose, { Model } from 'mongoose';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+import { categories, transactions } from '../models/model';
+import { User, Group } from '../models/User';
 
 dotenv.config();
 
@@ -21,11 +23,31 @@ afterAll(async () => {
   await mongoose.connection.close();
 });
 
-const exampleAdminAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV6d2FsbGV0QHRlc3QuY29tIiwiaWQiOiI2NDc2ZTAwMTNlZGQxZTQ4MzEwOGVhOGEiLCJ1c2VybmFtZSI6ImV6d2FsbGV0XzMxXzA1XzIwMjQiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU1MTIyMTIsImV4cCI6MTcxNzA0ODIxMn0.WjFDAfn9X9hkLFt-6sx8T6cGMsRnSYIdw27mERvRelQ";
-const exampleAdminRefToken=exampleAdminAccToken;
+beforeEach(async () => {
+    await categories.deleteMany({})
+    await transactions.deleteMany({})
+    await User.deleteMany({})
+    await Group.deleteMany({})
+})
 
-const exampleUserAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QzNjVAdGVzdC5jb20iLCJpZCI6IjY0NzZlMDhkM2VkZDFlNDgzMTA4ZWE5MCIsInVzZXJuYW1lIjoidGVzdF8zMV8wNV8yMDI0Iiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU1MTIzNDUsImV4cCI6MTcxNzA0ODM0NX0._1pvR1CW1qSuIj_XnM2aKZWD7dC7ToACiXkvxsahRkk";
-const exampleUserRefToken=exampleUserAccToken;
+const adminAccessTokenValid = jwt.sign({
+    email: "admin@email.com",
+    username: "admin",
+    role: "Admin"
+}, process.env.ACCESS_KEY, { expiresIn: '1y' })
+
+const testerAccessTokenValid = jwt.sign({
+    email: "tester@test.com",
+    username: "tester",
+    role: "Regular"
+}, process.env.ACCESS_KEY, { expiresIn: '1y' })
+
+const testerAccessTokenExpired = jwt.sign({
+    email: "tester@test.com",
+    username: "tester",
+    role: "Regular"
+}, process.env.ACCESS_KEY, { expiresIn: '0s' })
+const testerAccessTokenEmpty = jwt.sign({}, process.env.ACCESS_KEY, { expiresIn: "1y" })
 
 describe("createCategory", () => { 
     test('Dummy test, change it', () => {
@@ -34,37 +56,196 @@ describe("createCategory", () => {
 })
 
 describe("updateCategory", () => { 
-    beforeEach(async () => {
-        await categories.deleteMany({})
-        await transactions.deleteMany({})
-    })
-
-    test("should return 200 and update the category", (done) => {
-        for (let i=0; i<3; i++){
-            transactions.create({
+    test("should return 200 and update the category", async() => {
+        await transactions.insertMany([
+            {
                 username: "user1",
                 type: "category1",
-                amount: i
-            })
-        }
-        categories.create({
+                amount: 10
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 2
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 15
+            }
+        ])
+        await categories.create({
             type: "category1",
             color: "red"
-        }).then(() => {
-        request(app)
-            .patch("/api/categories/category1")
-            .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
-            .send({type: "category2", color: "yellow" })
-            .then((response) => {
-                expect(response.status).toBe(200)
-                expect(response.body.data.message).toEqual("Category edited successfully")
-                expect(response.body.data.count).toBe(3)
-                done() // Notify Jest that the test is complete
-            })
-            .catch((err) => done(err))
         })
-    })
-})
+        const response = await request(app)
+            .patch("/api/categories/category1")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ type: "category2", color: "yellow" })
+        
+        expect(response.status).toBe(200)
+        expect(response.body.data.message).toEqual("Category edited successfully")
+        expect(response.body.data.count).toBe(3)
+    });
+
+    test("Should return status code 400: request body does not contain all the necessary attributes", async() => {
+        await transactions.insertMany([
+            {
+                username: "user1",
+                type: "category1",
+                amount: 10
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 2
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 15
+            }
+        ])
+        await categories.create({
+            type: "category1",
+            color: "red"
+        })
+        const response = await request(app)
+            .patch("/api/categories/category1")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ color: "yellow" })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 400: at least one of the parameters in the request body is an empty string", async() => {
+        await transactions.insertMany([
+            {
+                username: "user1",
+                type: "category1",
+                amount: 10
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 2
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 15
+            }
+        ])
+        await categories.create({
+            type: "category1",
+            color: "red"
+        })
+        const response = await request(app)
+            .patch("/api/categories/category1")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ type: "", color: "yellow" })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 400: the type of category passed as a route parameter does not represent a category in the database", async() => {
+        await transactions.insertMany([
+            {
+                username: "user1",
+                type: "category1",
+                amount: 10
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 2
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 15
+            }
+        ])
+        await categories.create({
+            type: "category1",
+            color: "red"
+        })
+        const response = await request(app)
+            .patch("/api/categories/errCategory")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ type: "category1", color: "yellow" })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 400: the type of category passed in the request body as the new type represents an already existing category in the database and that category is not the same as the requested one", async() => {
+        await transactions.insertMany([
+            {
+                username: "user1",
+                type: "category1",
+                amount: 10
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 2
+            },{
+                username: "user1",
+                type: "category2",
+                amount: 15
+            }
+        ])
+        await categories.insertMany([
+            {
+                type: "category1",
+                color: "red"
+            },{
+                type: "category2",
+                color: "green"
+            }
+        ])
+        const response = await request(app)
+            .patch("/api/categories/category1")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ type: "category2", color: "yellow" })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 401: called by an authenticated user who is not an admin (authType = Admin)", async() => {
+        await transactions.insertMany([
+            {
+                username: "user1",
+                type: "category1",
+                amount: 10
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 2
+            },{
+                username: "user1",
+                type: "category1",
+                amount: 15
+            }
+        ])
+        await categories.insertMany([
+            {
+                type: "category1",
+                color: "red"
+            },{
+                type: "category2",
+                color: "green"
+            }
+        ])
+        const response = await request(app)
+            .patch("/api/categories/category1")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+            .send({ type: "category3", color: "yellow" })
+        
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+});
 
 describe("deleteCategory", () => { 
     test('Dummy test, change it', () => {
