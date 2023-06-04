@@ -124,7 +124,7 @@ describe("createGroup", () => {
   const calleeUser = {"_id": 123456};
   const user1 = {"_id": 1};
   const user2 = {"_id": 2};
-  jest.spyOn(User, "findOne").mockResolvedValueOnce({"_id": 123456});
+  jest.spyOn(User, "findOne").mockResolvedValueOnce(calleeUser);
   jest.spyOn(User, "findOne").mockResolvedValueOnce(user1)
   jest.spyOn(User, "findOne").mockResolvedValueOnce(user2)
   jest.spyOn(User, "findOne").mockResolvedValueOnce(undefined);
@@ -232,12 +232,12 @@ describe("deleteGroup", () => {
     verifyAuth.mockImplementation(() => {
       return { authorized: true, cause: "authorized" }
     });
-
-    Group.findOne.mockResolvedValue({name: "Family"});
-    Group.findOneAndDelete.mockResolvedValueOnce({name: "Family"});
+    const resolved = {some: "Family"};
+    jest.spyOn(Group, "findOne").mockResolvedValue(resolved);
+    jest.spyOn(Group, "findOneAndDelete").mockResolvedValueOnce(resolved);
 
     await deleteGroup(mockReq, mockRes);
-    expect(mockRes.status).toHaveBeenCalledWith(400)
+    expect(mockRes.status).toHaveBeenCalledWith(200)
     expect(mockRes.json).toHaveBeenCalledWith({data: {message: "The group has been deleted!"}, 
     refreshedTokenMessage: "expired token"})
 
