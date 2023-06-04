@@ -73,8 +73,49 @@ describe("deleteCategory", () => {
 })
 
 describe("getCategories", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test('status 200 and correct retrieved categories', async () => {
+        categories.insertMany([
+            {
+                type: "fun",
+                color: "Red"
+            },
+            {
+                type: "family",
+                color: "Green"
+            },
+            {
+                type: "investment",
+                color: "grey"
+            },
+            {
+                type: "food",
+                color: "yellow"
+            }
+        ]);
+
+        const response = await request(app)
+                      .get("/api/categories")
+                      .set("Cookie", `accessToken=${adminAccessTokenValid}; refreshToken=${adminAccessTokenValid}`);
+        
+        expect(response.status).toBe(200);
+        expect(response.body.data).toStrictEqual([
+            {
+                type: "fun",
+                color: "Red"
+            },
+            {
+                type: "family",
+                color: "Green"
+            },
+            {
+                type: "investment",
+                color: "grey"
+            },
+            {
+                type: "food",
+                color: "yellow"
+            }
+        ]);
     });
 })
 
@@ -125,8 +166,7 @@ describe("getAllTransactions", () => {
 
         const response = await request(app)
                       .get("/api/transactions")
-                      .set("Cookie", `accessToken=${adminAccessTokenValid}; refreshToken=${adminAccessTokenValid}`)
-                      .send(); //Setting cookies in the request
+                      .set("Cookie", `accessToken=${adminAccessTokenValid}; refreshToken=${adminAccessTokenValid}`); //Setting cookies in the request
                       
         expect(response.status).toBe(200)
         expect(response.body.data).toStrictEqual([
@@ -205,6 +245,7 @@ describe("getAllTransactions", () => {
                       
         expect(response.status).toBe(401)
         expect(response.body).toHaveProperty("error");
+        expect(response.body).not.toHaveProperty("data");
     });
 });
 
