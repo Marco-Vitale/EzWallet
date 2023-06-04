@@ -534,7 +534,10 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
             return res.status(400).json({error: "User not found"});
         }
 
-
+        const isCategoryPresent = await categories.findOne({type: category});
+        if(!isCategoryPresent){
+            return res.status(400).json({error: "Category not found"});
+        }
         const retrieveGroup = (await Group.findOne({ name: groupName })); 
         if (!retrieveGroup) res.status(401).json({error: "Group not found"});
 
