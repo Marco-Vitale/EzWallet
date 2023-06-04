@@ -204,11 +204,11 @@ export const getGroup = async (req, res) => {
 
       const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
       const adminAuth = verifyAuth(req, res, { authType: "Admin" });
-      if (!auth.authorized && !adminAuth.authorized) res.status(401).json({error: auth.cause});
+      if (!auth.authorized && !adminAuth.authorized) return res.status(401).json({error: auth.cause});
 
       const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
 
-      res.status(200).json({data: {name: retrieveGroup.name, members: members}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
+      return res.status(200).json({data: {group:{name: retrieveGroup.name, members: members}}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
   
       } catch (error) {
         res.status(500).json({error: error.message})      
