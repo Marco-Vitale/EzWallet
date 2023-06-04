@@ -106,7 +106,87 @@ describe("verifyEmail", () => {
 })
 
 describe("handleAmountFilterParams", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test("Should return the condition just for the min", () => {
+        const req = {
+            query: {
+                min: 50
+            }
+        }
+
+        const result = handleAmountFilterParams(req)
+
+        expect(result).toHaveProperty("amount")
+        expect(result.amount).toHaveProperty("$gte")
+        expect(result.amount.$gte).toBe(50)
+    });
+
+    test("Should return the condition for the min and max", () => {
+        const req = {
+            query: {
+                min: 50,
+                max: 100
+            }
+        }
+
+        const result = handleAmountFilterParams(req)
+
+        expect(result).toHaveProperty("$and")
+        expect(result.$and.length).toBe(2)
+        expect(result.$and[0]).toHaveProperty("amount") //check that the max amount is defined
+        expect(result.$and[1]).toHaveProperty("amount") //check that the min amount is defined
+        expect(result.$and.find(element => element.amount.$lte).amount.$lte).toBe(100)
+        expect(result.$and.find(element => element.amount.$gte).amount.$gte).toBe(50)
+    });
+
+    test("Should return error (min is not a number), max is a number", () => {
+        const req = {
+            query: {
+                min: "NaN",
+                max: 100
+            }
+        }
+
+        expect(() => handleAmountFilterParams(req)).toThrow()
+    });
+
+    test("Should return error (max is not a number), min is a number", () => {
+        const req = {
+            query: {
+                min: 50,
+                max: "NaN"
+            }
+        }
+
+        expect(() => handleAmountFilterParams(req)).toThrow()
+    });
+
+    test("Should return error (min is not a number)", () => {
+        const req = {
+            query: {
+                min: "NaN"
+            }
+        }
+
+        expect(() => handleAmountFilterParams(req)).toThrow()
+    });
+
+    test("Should return error (max is not a number)", () => {
+        const req = {
+            query: {
+                max: "NaN"
+            }
+        }
+
+        expect(() => handleAmountFilterParams(req)).toThrow()
+    });
+
+    test("Should return an ampty result", () => {
+        const req = {
+            query: {}
+        }
+
+        const result = handleAmountFilterParams(req)
+
+        expect(result).toEqual({})
     });
 })
