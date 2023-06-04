@@ -11,9 +11,74 @@ beforeEach(() => {
     jest.clearAllMocks()
 })
 
-describe("handleDateFilterParams", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+describe("handleDateFilterParams", () => { // TODO: check if $and can be a problem
+    test(`Returns an object with a property "date" passing "date" (with properties "$gte" and "$lte")`, () => {
+        const req = { query: { date: "2023-06-04" } }
+        const res = handleDateFilterParams(req)
+
+        expect(res).toHaveProperty("$and")
+        expect(res.$and[0]).toHaveProperty("date")
+        expect(res.$and[1]).toHaveProperty("date")
+        expect(res.$and.find(element => element.date.$gte).date).toHaveProperty("$gte")
+        expect(res.$and.find(element => element.date.$lte).date).toHaveProperty("$lte")
+
+        expect(res.$and.find(element => element.date.$gte).date.$gte.toISOString().slice(0, 19)).toEqual(req.query.date.slice(0, 10) + "T00:00:00")
+        expect(res.$and.find(element => element.date.$lte).date.$lte.toISOString().slice(0, 19)).toEqual(req.query.date.slice(0, 10) + "T23:59:59")
+    });
+
+    test(`Returns an object with a property "date" passing "from" (only $gte property)`, () => {
+        const req = { query: { from: "2023-01-03" } }
+        const res = handleDateFilterParams(req)
+
+        expect(res).toHaveProperty("date")
+        expect(res.date).toHaveProperty("$gte")
+
+        expect(res.date.$gte.toISOString().slice(0, 19)).toEqual(req.query.from.slice(0, 10) + "T00:00:00")
+    });
+
+    test(`Returns an object with a property "date" passing "upTo" (only $lte property)`, () => {
+        const req = { query: { upTo: "2023-01-05" } }
+        const res = handleDateFilterParams(req)
+
+        expect(res).toHaveProperty("date")
+        expect(res.date).toHaveProperty("$lte")
+
+        expect(res.date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T00:00:00")
+    });
+
+    test(`Returns an object with a property "date" passing "from" and "upTo" (with properties "$gte" and "$lte")`, () => {
+        const req = { query: { from: "2023-01-03", upTo: "2023-01-05" } }
+        const res = handleDateFilterParams(req)
+
+        expect(res).toHaveProperty("$and")
+        expect(res.$and[0]).toHaveProperty("date")
+        expect(res.$and[1]).toHaveProperty("date")
+        expect(res.$and.find(element => element.date.$gte).date).toHaveProperty("$gte")
+        expect(res.$and.find(element => element.date.$lte).date).toHaveProperty("$lte")
+
+        expect(res.$and.find(element => element.date.$gte).date.$gte.toISOString().slice(0, 19)).toEqual(req.query.from.slice(0, 10) + "T00:00:00")
+        expect(res.$and.find(element => element.date.$lte).date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T23:59:59")
+    });
+
+    test(`Returns errors`, () => {
+        const req1 = { query: { date: "2023-01-03", upTo: "2023-01-05" } }
+        const req2 = { query: { date: "01-03.2023" } }
+        const req3 = { query: { from: "01-03.2023" } }
+        const req4 = { query: { upTo: "01-03.2023" } }
+        const req5 = { query: { from: "2023-01-03", upTo: "01-03.2023" } }
+
+        expect(() => handleDateFilterParams(req1)).toThrow()
+        expect(() => handleDateFilterParams(req2)).toThrow()
+        expect(() => handleDateFilterParams(req3)).toThrow()
+        expect(() => handleDateFilterParams(req4)).toThrow()
+        expect(() => handleDateFilterParams(req5)).toThrow()
+    });
+
+    test(`Returns empty`, () => {
+        const req = {}
+        const res = handleDateFilterParams(req)
+
+        expect(res).toEqual({})
     });
 })
 
@@ -408,7 +473,7 @@ describe("verifyEmail", () => {
     });
 })
 
-describe("handleAmountFilterParams", () => { 
+describe("handleAmountFilterParams", () => { // TODO: check if $and can be a problem
     test("Should return the condition just for the min", () => {
         const req = {
             query: {
