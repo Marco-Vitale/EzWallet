@@ -485,7 +485,7 @@ export const deleteGroup = async (req, res) => {
     try {
 
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-      if (!adminAuth.authorized) return res.status(400).json({error: adminAuth.cause});
+      if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
 
       const {name} = req.body
 

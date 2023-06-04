@@ -478,4 +478,135 @@ describe("removeFromGroup", () => { })
 
 describe("deleteUser", () => { })
 
-describe("deleteGroup", () => { })
+describe("deleteGroup", () => { 
+
+  test("should return status 200 for a sequence of deletion", async () => {
+    await Group.create(
+      {
+        name: "Family",
+        members: [{email: "tester3@test.com"}, {email: "tester2@email.com"}]
+      }
+    );
+
+    await Group.create({
+      name: "Fun",
+      members: [{email: "tester4@test.com"}, {email: "tester5@email.com"}]
+    });
+
+    const response = await request(app)
+                      .delete("/api/groups")
+                      .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                      .send({name: "Family"});
+                    
+      
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveProperty("message");
+    //expect(response.body).toHaveProperty("refreshedTokenMessage");
+
+    const response2 = await request(app)
+                      .delete("/api/groups")
+                      .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                      .send({name: "Fun"});
+                    
+      
+    expect(response2.status).toBe(200);
+    expect(response2.body.data).toHaveProperty("message");
+
+  })
+
+  test("should return status 400 for a call with wrong body property", async () => {
+    await Group.create(
+      {
+        name: "Family",
+        members: [{email: "tester3@test.com"}, {email: "tester2@email.com"}]
+      }
+    );
+
+    await Group.create({
+      name: "Fun",
+      members: [{email: "tester4@test.com"}, {email: "tester5@email.com"}]
+    });
+
+    const response = await request(app)
+                      .delete("/api/groups")
+                      .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                      .send({other: "Family"});
+                    
+      
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("error");
+    //expect(response.body).toHaveProperty("refreshedTokenMessage");
+  })
+
+  test("should return status 400 for a call with empty stirng body(with spaces)", async () => {
+    await Group.create(
+      {
+        name: "Family",
+        members: [{email: "tester3@test.com"}, {email: "tester2@email.com"}]
+      }
+    );
+
+    await Group.create({
+      name: "Fun",
+      members: [{email: "tester4@test.com"}, {email: "tester5@email.com"}]
+    });
+
+    const response = await request(app)
+                      .delete("/api/groups")
+                      .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                      .send({name: "    "});
+                    
+      
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("error");
+    //expect(response.body).toHaveProperty("refreshedTokenMessage");
+  })
+
+  test("should return status 400 for a call with body that does not represent a group in db", async () => {
+    await Group.create(
+      {
+        name: "Family",
+        members: [{email: "tester3@test.com"}, {email: "tester2@email.com"}]
+      }
+    );
+
+    await Group.create({
+      name: "Fun",
+      members: [{email: "tester4@test.com"}, {email: "tester5@email.com"}]
+    });
+
+    const response = await request(app)
+                      .delete("/api/groups")
+                      .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                      .send({name: "NotInDB"});
+                    
+      
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("error");
+    //expect(response.body).toHaveProperty("refreshedTokenMessage");
+  })
+
+  test("should return status 401 for non admin call", async () => {
+    await Group.create(
+      {
+        name: "Family",
+        members: [{email: "tester3@test.com"}, {email: "tester2@email.com"}]
+      }
+    );
+
+    await Group.create({
+      name: "Fun",
+      members: [{email: "tester4@test.com"}, {email: "tester5@email.com"}]
+    });
+
+    const response = await request(app)
+                      .delete("/api/groups")
+                      .set("Cookie", `accessToken=${exampleUserAccToken}; refreshToken=${exampleUserRefToken}`) //Setting cookies in the request
+                      .send({name: "Family"});
+                    
+      
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty("error");
+    //expect(response.body).toHaveProperty("refreshedTokenMessage");
+  })
+})
