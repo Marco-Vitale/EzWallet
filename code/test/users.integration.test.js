@@ -52,26 +52,26 @@ beforeEach(async () => {
 /**
  * Alternate way to create the necessary tokens for authentication without using the website
  */
-/*const adminAccessTokenValid = jwt.sign({
+const adminAccessTokenValid = jwt.sign({
   email: "admin@email.com",
   //id: existingUser.id, The id field is not required in any check, so it can be omitted
   username: "admin",
   role: "Admin"
-}, process.env.ACCESS_KEY, { expiresIn: '1y' })
-​
+}, process.env.ACCESS_KEY, { expiresIn: '1y' });
+
 const testerAccessTokenValid = jwt.sign({
   email: "tester@test.com",
   username: "tester",
   role: "Regular"
-}, process.env.ACCESS_KEY, { expiresIn: '1y' })
-​
+}, process.env.ACCESS_KEY, { expiresIn: '1y' });
+
 //These tokens can be used in order to test the specific authentication error scenarios inside verifyAuth (no need to have multiple authentication error tests for the same route)
 const testerAccessTokenExpired = jwt.sign({
   email: "tester@test.com",
   username: "tester",
   role: "Regular"
-}, process.env.ACCESS_KEY, { expiresIn: '0s' })
-const testerAccessTokenEmpty = jwt.sign({}, process.env.ACCESS_KEY, { expiresIn: "1y" })*/
+}, process.env.ACCESS_KEY, { expiresIn: '0s' });
+const testerAccessTokenEmpty = jwt.sign({}, process.env.ACCESS_KEY, { expiresIn: "1y" });
 
 
 describe("getUsers", () => {
@@ -154,7 +154,7 @@ describe("createGroup", () => {
 
       const response = await request(app)
                       .post("/api/groups")
-                      .set("Cookie", `accessToken=${exampleUserAccToken}; refreshToken=${exampleUserRefToken}`) //Setting cookies in the request
+                      .set("Cookie", `accessToken=${testerAccessTokenExpired}; refreshToken=${testerAccessTokenExpired}`) //Setting cookies in the request
                       .send({name: "Fun", memberEmails: ["tester1@test.com", "tester2@test.com", "tester3@test.com", "notfound@email.com"]});
       
         expect(response.status).toBe(200)
@@ -400,7 +400,7 @@ describe("createGroup", () => {
 
       const response = await request(app)
                       .post("/api/groups")
-                      .set("Cookie", `accessToken=${"not_auth"}; refreshToken=${"not_auth"}`) //Setting cookies in the request
+                      .set("Cookie", `accessToken=${testerAccessTokenEmpty}; refreshToken=${testerAccessTokenEmpty}`) //Setting cookies in the request
                       .send({name: "Fun", memberEmails: ["tester2@test.com"]});
       
         expect(response.status).toBe(401)
@@ -442,8 +442,6 @@ describe("getGroups", () => {
     {name: "Fun", 
     members: [{email: "tester4@test.com"}, {email: "tester5@email.com"}]}
     ]);
-    //expect(response.body).toHaveProperty("refreshedTokenMessage");
-
   })
 
   test("should return status 401 for a call by non admin user", async () => {
@@ -501,7 +499,6 @@ describe("deleteGroup", () => {
       
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveProperty("message");
-    //expect(response.body).toHaveProperty("refreshedTokenMessage");
 
     const response2 = await request(app)
                       .delete("/api/groups")
@@ -535,7 +532,6 @@ describe("deleteGroup", () => {
       
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("error");
-    //expect(response.body).toHaveProperty("refreshedTokenMessage");
   })
 
   test("should return status 400 for a call with empty stirng body(with spaces)", async () => {
@@ -559,7 +555,6 @@ describe("deleteGroup", () => {
       
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("error");
-    //expect(response.body).toHaveProperty("refreshedTokenMessage");
   })
 
   test("should return status 400 for a call with body that does not represent a group in db", async () => {
@@ -583,7 +578,6 @@ describe("deleteGroup", () => {
       
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("error");
-    //expect(response.body).toHaveProperty("refreshedTokenMessage");
   })
 
   test("should return status 401 for non admin call", async () => {
@@ -607,6 +601,5 @@ describe("deleteGroup", () => {
       
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty("error");
-    //expect(response.body).toHaveProperty("refreshedTokenMessage");
   })
 })
