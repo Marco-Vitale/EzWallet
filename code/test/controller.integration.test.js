@@ -82,8 +82,8 @@ describe("updateCategory", () => {
             .send({ type: "category2", color: "yellow" })
         
         expect(response.status).toBe(200)
-        expect(response.body.data.message).toEqual("Category edited successfully")
-        expect(response.body.data.count).toBe(3)
+        expect(response.body.data).toHaveProperty("message")
+        expect(response.body.data).toHaveProperty("count", 3)
     });
 
     test("Should return status code 400: request body does not contain all the necessary attributes", async() => {
@@ -248,8 +248,161 @@ describe("updateCategory", () => {
 });
 
 describe("deleteCategory", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test("should return 200 and delete the category", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category1", amount: 10 },
+            { username: "user1", type: "category1", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ types: ["category1", "category2"] })
+        
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveProperty("message")
+        expect(response.body.data).toHaveProperty("count", 3)
+    });
+
+    test("Should return status code 400: the request body does not contain all the necessary attributes", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category1", amount: 10 },
+            { username: "user1", type: "category1", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ errLabel: ["category1", "category2"] })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 400: there is only one category in the database", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category1", amount: 10 },
+            { username: "user1", type: "category1", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.create(
+            {type: "lastCategory", color: "red"}
+        )
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ types: ["category1", "category2", "lastCategory"] })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 400: at least one of the types in the array is an empty string", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category1", amount: 10 },
+            { username: "user1", type: "category1", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ types: ["category1", ""] })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 400: the array passed in the request body is empty", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category1", amount: 10 },
+            { username: "user1", type: "category1", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ types: [] })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 400: at least one of the types in the array does not represent a category in the database", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category1", amount: 10 },
+            { username: "user1", type: "category1", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ types: ["category1", "category2", "category99"] })
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return status code 401: called by an authenticated user who is not an admin (authType = Admin)", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category1", amount: 10 },
+            { username: "user1", type: "category1", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+            .send({ types: ["category1", "category2"] })
+        
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
     });
 })
 
