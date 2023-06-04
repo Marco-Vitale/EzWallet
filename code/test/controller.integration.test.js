@@ -56,7 +56,7 @@ describe("createCategory", () => {
 })
 
 describe("updateCategory", () => { 
-    test("should return 200 and update the category", async() => {
+    test("Should return 200 and update the category", async() => {
         await transactions.insertMany([
             {
                 username: "user1",
@@ -248,7 +248,7 @@ describe("updateCategory", () => {
 });
 
 describe("deleteCategory", () => { 
-    test("should return 200 and delete the category", async() => {
+    test("Should return 200 and delete the category", async() => {
         await transactions.insertMany([
             { username: "user1", type: "category1", amount: 10 },
             { username: "user1", type: "category1", amount: 2 },
@@ -425,8 +425,171 @@ describe("getAllTransactions", () => {
 })
 
 describe("getTransactionsByUser", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test("(admin) Should return 200 and the list of transactions related to the passed user", async() => {
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10 },
+            { username: "tester", type: "category1", amount: 2 },
+            { username: "tester", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response = await request(app)
+            .get("/api/transactions/users/tester")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+        
+        expect(response.status).toBe(200)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+    });
+
+    test.skip("(user) Should return 200 and the list of transactions related to the passed user", async() => { //TODO
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10 },
+            { username: "tester", type: "category1", amount: 2 },
+            { username: "tester", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response = await request(app)
+            .get("/api/users/tester/transactions")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+        
+        expect(response.status).toBe(200)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+    });
+
+    test("Should return 400: the username passed as a route parameter does not represent a user in the database", async() => {
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10 },
+            { username: "tester", type: "category1", amount: 2 },
+            { username: "tester", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response = await request(app)
+            .get("/api/transactions/users/notPresentUser")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+        
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return 401: called by an authenticated user who is not the same user as the one in the route (authType = User) if the route is `/api/users/:username/transactions`", async() => {
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10 },
+            { username: "tester", type: "category1", amount: 2 },
+            { username: "tester", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "otherTester", email: "otherTester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response = await request(app)
+            .get("/api/users/otherTester/transactions")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+        
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test("Should return 401: called by an authenticated user who is not an admin (authType = Admin) if the route is `/api/transactions/users/:username`", async() => {
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10 },
+            { username: "tester", type: "category1", amount: 2 },
+            { username: "tester", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "otherTester", email: "otherTester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response = await request(app)
+            .get("/api/transactions/users/tester")
+            .set("Cookie", `accessToken=${testerAccessTokenEmpty};refreshToken=${testerAccessTokenEmpty}`)
+        
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test.skip("(user) Should return 200 and the list of transactions related to the passed user", async() => { //TODO: handle amount and date
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10 },
+            { username: "tester", type: "category1", amount: 2 },
+            { username: "tester", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response = await request(app)
+            .get("/api/users/tester/transactions")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+        
+        expect(response.status).toBe(200)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
     });
 })
 
