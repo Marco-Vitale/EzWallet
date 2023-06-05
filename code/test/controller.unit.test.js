@@ -545,7 +545,7 @@ describe("deleteCategory", () => {
         }))
     });
 
-    test("Should return status code 400: called by an authenticated user who is not an admin (authType = Admin)", async() => {
+    test("Should return status code 401: called by an authenticated user who is not an admin (authType = Admin)", async() => {
         const foundCategories = [{type: "category1", color: "red"}, {type: "category2", color: "blue"}];
 
         const mockReq = {
@@ -649,7 +649,7 @@ describe("getTransactionsByUser", () => {
         const mockReq = {
             params: { username: "test1" },
             body: {},
-            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            cookies: { accessToken:exampleUserAccToken, refreshToken:exampleUserRefToken },
             url: "/api/users/test1/transactions" // user route
         }
         const mockRes = {
