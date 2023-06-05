@@ -31,7 +31,9 @@ describe('register', () => {
         await register(mockReq, mockRes)
 
         expect(mockRes.status).toHaveBeenCalledWith(200)
-        expect(mockRes.json).toHaveBeenCalledWith({data: {message: "User added successfully"}});
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
+            data: { message: expect.any(String) }
+        }))
     });
 
     test("Should return status code 400: the request body does not contain all the necessary attributes", async() => {

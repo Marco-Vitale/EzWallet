@@ -43,7 +43,7 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         expect(res).toHaveProperty("date")
         expect(res.date).toHaveProperty("$lte")
 
-        expect(res.date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T00:00:00")
+        expect(res.date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T23:59:59")
     });
 
     test(`Returns an object with a property "date" passing "from" and "upTo" (with properties "$gte" and "$lte")`, () => {
