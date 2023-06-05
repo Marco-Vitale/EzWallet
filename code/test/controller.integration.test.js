@@ -1322,7 +1322,7 @@ describe("deleteTransaction", () => {
         expect(response.body).toHaveProperty("data")
     });
 
-    test.skip('Should return status code 400, missing body parameters', async () => {
+    test('Should return status code 400, missing body parameters', async () => {
 
         const u1 = await User.create({username: "admin",
         email: "admin@email.com",
@@ -1344,7 +1344,7 @@ describe("deleteTransaction", () => {
         expect(errorMessage).toBe(true)
     });
 
-    test.skip('Should return status code 400, empty id', async () => {
+    test('Should return status code 400, empty id', async () => {
 
         const u1 = await User.create({username: "admin",
         email: "admin@email.com",
@@ -1367,7 +1367,7 @@ describe("deleteTransaction", () => {
         expect(errorMessage).toBe(true)
     });
 
-    test.skip('Should return status code 400, user not in the db', async () => {
+    test('Should return status code 400, user not in the db', async () => {
 
         const t = await transactions.create({
         username: "admin",
@@ -1377,14 +1377,14 @@ describe("deleteTransaction", () => {
         const response = await request(app)
         .delete("/api/users/admin/transactions")
         .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
-        .send({_id:  "  "})
+        .send({_id: t._id})
 
         expect(response.status).toBe(400)
         const errorMessage = response.body.error ? true : response.body.message ? true : false
         expect(errorMessage).toBe(true)
     });
 
-    test.skip('Should return status code 400, transaction not in the db', async () => {
+    test('Should return status code 400, transaction not in the db', async () => {
 
         const u1 = await User.create({username: "admin",
         email: "admin@email.com",
@@ -1395,14 +1395,15 @@ describe("deleteTransaction", () => {
         const response = await request(app)
         .delete("/api/users/admin/transactions")
         .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
-        .send({_id:  "  "})
+        .send({_id: "647d8cd8ef939d0588908922"})
 
         expect(response.status).toBe(400)
         const errorMessage = response.body.error ? true : response.body.message ? true : false
         expect(errorMessage).toBe(true)
+        
     });
 
-    test.skip('Should return status code 400, transaction of a different user', async () => {
+    test('Should return status code 400, transaction of a different user', async () => {
 
         const u1 = await User.create({username: "admin",
         email: "admin@email.com",
@@ -1424,14 +1425,14 @@ describe("deleteTransaction", () => {
         const response = await request(app)
         .delete("/api/users/admin/transactions")
         .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
-        .send({_id:  "  "})
+        .send({_id: t._id})
 
         expect(response.status).toBe(400)
         const errorMessage = response.body.error ? true : response.body.message ? true : false
         expect(errorMessage).toBe(true)
     });
 
-    test.skip('Should return status code 400, user mismatch', async () => {
+    test('Should return status code 400, user mismatch', async () => {
 
         const u1 = await User.create({username: "admin",
         email: "admin@email.com",
@@ -1455,9 +1456,141 @@ describe("deleteTransaction", () => {
     });
 })
 
-//TODO
+
 describe("deleteTransactions", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test('Should return status code 200', async () => {
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const t = await transactions.create({
+        username: "admin",
+        type: "food",
+        amount: 20})
+
+        const t2 = await transactions.create({
+            username: "tester",
+            type: "food",
+            amount: 20})
+
+        const response = await request(app)
+        .delete("/api/transactions")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+        .send({_ids: [t._id, t2._id]})
+
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveProperty("data")
+    });
+
+    test('Should return status code 400, missing body', async () => {
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const t = await transactions.create({
+        username: "admin",
+        type: "food",
+        amount: 20})
+
+        const t2 = await transactions.create({
+            username: "tester",
+            type: "food",
+            amount: 20})
+
+        const response = await request(app)
+        .delete("/api/transactions")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, empty string in ids', async () => {
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const t = await transactions.create({
+        username: "admin",
+        type: "food",
+        amount: 20})
+
+        const t2 = await transactions.create({
+            username: "tester",
+            type: "food",
+            amount: 20})
+
+        const response = await request(app)
+        .delete("/api/transactions")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+        .send({_ids: [t._id, t2._id, "   "]})
+
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 400, transaction not in the db', async () => {
+
+        const u1 = await User.create({username: "admin",
+        email: "admin@email.com",
+        password: "admin",
+        refreshToken: adminAccessTokenValid,
+        role: "Admin"})
+
+        const t = await transactions.create({
+        username: "admin",
+        type: "food",
+        amount: 20})
+
+        const response = await request(app)
+        .delete("/api/transactions")
+        .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+        .send({_ids: [t._id, "647d8cd8ef939d0588908638"]})
+
+
+        expect(response.status).toBe(400)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
+    });
+
+    test('Should return status code 401, user is not an admin', async () => {
+
+        const u1 = await User.create({username: "tester",
+        email: "tester@test.com",
+        password: "tester",
+        refreshToken: testerAccessTokenValid 
+        })
+
+        const t = await transactions.create({
+        username: "admin",
+        type: "food",
+        amount: 20})
+
+        const t2 = await transactions.create({
+        username: "tester",
+        type: "food",
+        amount: 20})
+
+        const response = await request(app)
+        .delete("/api/transactions")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+        .send({_ids: [t._id, t2._id]})
+
+
+        expect(response.status).toBe(401)
+        const errorMessage = response.body.error ? true : response.body.message ? true : false
+        expect(errorMessage).toBe(true)
     });
 })
