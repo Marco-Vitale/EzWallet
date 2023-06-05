@@ -1,4 +1,4 @@
-import jwt, { TokenExpiredError } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 const bcrypt = require("bcryptjs")
 import { handleDateFilterParams, verifyAuth, verifyEmail, handleAmountFilterParams } from '../controllers/utils';
 
@@ -419,7 +419,7 @@ describe("verifyAuth", () => {
         expect(Object.values(response).includes(false)).toBe(true)
     });
 
-    test("Simple auth: Should return a flag/label setted to false (perform login again)", () => {
+    test("Error auth: Should return a flag/label setted to false (perform login again)", () => {
         const req = { cookies: { accessToken: "experiedUserAccToken", refreshToken: "exampleUserRefToken" } }
         const res = {
             cookie: jest.fn(),
