@@ -636,6 +636,136 @@ describe("getTransactionsByUser", () => {
         expect(response4.body.data.length).toBe(3)
     });
 
+    test("(user) Should return 200 and the list of transactions related to the passed user with amount filters", async() => {
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10, date: "2023-01-10T10:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 2, date: "2023-01-10T11:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 15, date: "2023-01-12T10:00:00.000Z" },
+            { username: "tester", type: "category3", amount: 15, date: "2023-01-12T10:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 15, date: "2023-02-15T10:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 15, date: "2023-05-15T10:00:00.000Z" },
+            { username: "otherTester", type: "category1", amount: 50, date: "2023-05-15T10:00:00.000Z" },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "tester2", email: "tester2@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response1 = await request(app)
+            .get("/api/users/tester/transactions?min=15")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        const response2 = await request(app)
+            .get("/api/users/tester/transactions?max=10")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+        
+        const response3 = await request(app)
+            .get("/api/users/tester/transactions?min=8&max=17")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+                
+        expect(response1.status).toBe(200)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+        expect(response1.body.data.length).toBe(4)
+
+        expect(response2.status).toBe(200)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+        expect(response2.body.data.length).toBe(2)
+
+        expect(response3.status).toBe(200)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+        expect(response3.body.data.length).toBe(5)
+    });
+
+    test("(user) Should return 200 and the list of transactions related to the passed user with date and amount filters", async() => {
+        await transactions.insertMany([
+            { username: "tester", type: "category1", amount: 10, date: "2023-01-10T10:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 2, date: "2023-01-10T11:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 15, date: "2023-01-12T10:00:00.000Z" },
+            { username: "tester", type: "category3", amount: 15, date: "2023-01-12T10:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 15, date: "2023-02-15T10:00:00.000Z" },
+            { username: "tester", type: "category1", amount: 15, date: "2023-05-15T10:00:00.000Z" },
+            { username: "otherTester", type: "category1", amount: 50, date: "2023-05-15T10:00:00.000Z" },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        await User.insertMany([
+            {username: "tester", email: "tester@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "tester2", email: "tester2@test.com", password: "tester", role: "Regular", refreshToken: testerAccessTokenValid},
+            {username: "admin", email: "admin@email.com", password: "admin", role: "Admin", refreshToken: adminAccessTokenValid},
+        ])
+        const response1 = await request(app)
+            .get("/api/users/tester/transactions?date=2023-01-10&min=5&max=10")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+
+        const response2 = await request(app)
+            .get("/api/users/tester/transactions?from=2023-01-10&min=12")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+        
+        const response3 = await request(app)
+            .get("/api/users/tester/transactions?upTo=2023-06-16&max=8")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+        
+        const response4 = await request(app)
+            .get("/api/users/tester/transactions?from=2023-01-10&upTo=2023-02-15&max=5")
+            .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`)
+                
+        expect(response1.status).toBe(200)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response1.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+        expect(response1.body.data.length).toBe(1)
+
+        expect(response2.status).toBe(200)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response2.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+        expect(response2.body.data.length).toBe(4)
+
+        expect(response3.status).toBe(200)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response3.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+        expect(response3.body.data.length).toBe(1)
+
+        expect(response4.status).toBe(200)
+        expect(response4.body.data.every( transaction => (transaction.hasOwnProperty("username")) ) ).toBe(true)
+        expect(response4.body.data.every( transaction => (transaction.hasOwnProperty("amount")) ) ).toBe(true)
+        expect(response4.body.data.every( transaction => (transaction.hasOwnProperty("type")) ) ).toBe(true)
+        expect(response4.body.data.every( transaction => (transaction.hasOwnProperty("date")) ) ).toBe(true)
+        expect(response4.body.data.every( transaction => (transaction.hasOwnProperty("color")) ) ).toBe(true)
+        expect(response4.body.data.length).toBe(1)
+    });
+
     test("(user) Should return an error if any of the date filters is not a string in date format", async() => {
         await transactions.insertMany([
             { username: "tester", type: "category1", amount: 10, date: "2023-01-10T10:00:00.000Z" },
