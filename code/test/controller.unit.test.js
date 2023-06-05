@@ -1,9 +1,9 @@
 import request from 'supertest';
 import { app } from '../app';
 import { categories, transactions } from '../models/model';
-import { User } from '../models/User';
+import { Group, User } from '../models/User';
 import { verifyAuth } from '../controllers/utils';
-import { createCategory, createTransaction, deleteTransaction, deleteTransactions } from '../controllers/controller';
+import { createCategory, createTransaction, deleteTransaction, deleteTransactions, getTransactionsByGroup, getTransactionsByGroupByCategory, getTransactionsByUserByCategory } from '../controllers/controller';
 
 jest.mock('../models/model');
 jest.mock("../models/User.js");
@@ -432,25 +432,679 @@ describe("getTransactionsByUser", () => {
     });
 })
 
-//TODO
+
 describe("getTransactionsByUserByCategory", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+
+    const userTransactions = [
+        {username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", categories_info: {color: "red"}}, 
+        {username: "Mario", amount: 70,  type: "food", date: "2023-06-19T10:00:00", categories_info: {color: "red"}},
+        {username: "Mario", amount: 20,  type: "food", date: "2023-07-19T10:00:00", categories_info: {color: "red"}}
+    ]
+
+    const mockUser = {
+        username: "Mario",
+        email: "xxx@yyyy.it",
+        password: "xxxxxxx",
+        refreshToken: "xxxx",
+        role:"Regular"
+    }
+
+    const mockCategory = {
+        type: "food",
+        color: "red"
+    }
+
+    test("Should return status code 200 (admin route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/users/Mario/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(mockUser)
+        categories.findOne.mockResolvedValueOnce(mockCategory)
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+        transactions.aggregate.mockResolvedValueOnce(userTransactions)
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(200)
+        expect(mockRes.json).toHaveBeenCalledWith({ data: [
+                                                        {username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", color: "red"}, 
+                                                        {username: "Mario", amount: 70,  type: "food", date: "2023-06-19T10:00:00", color: "red"},
+                                                        {username: "Mario", amount: 20,  type: "food", date: "2023-07-19T10:00:00", color: "red"}
+                                                    ], refreshedTokenMessage: mockRes.locals.refreshedTokenMessage});
+    });
+
+    test("Should return status code 200 (user route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/users/Mario/transactions/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(mockUser)
+        categories.findOne.mockResolvedValueOnce(mockCategory)
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+        transactions.aggregate.mockResolvedValueOnce(userTransactions)
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(200)
+        expect(mockRes.json).toHaveBeenCalledWith({ data: [
+                                                        {username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", color: "red"}, 
+                                                        {username: "Mario", amount: 70,  type: "food", date: "2023-06-19T10:00:00", color: "red"},
+                                                        {username: "Mario", amount: 20,  type: "food", date: "2023-07-19T10:00:00", color: "red"}
+                                                    ], refreshedTokenMessage: mockRes.locals.refreshedTokenMessage});
+    });
+
+    test("Should return status code 400, user not in the db (admin route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/users/Mario/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(null)
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 400, user not in the db (user route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/users/Mario/transactions/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(null)
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 400, category not in the db (admin route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/users/Mario/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(mockUser)
+        categories.findOne.mockResolvedValueOnce(null)
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 400, category not in the db (user route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/users/Mario/transactions/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(mockUser)
+        categories.findOne.mockResolvedValueOnce(null)
+
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 401, user is not admin (admin route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/users/Mario/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(mockUser)
+        categories.findOne.mockResolvedValueOnce(mockCategory)
+
+        verifyAuth.mockReturnValue({ authorized: false, cause: "Requested auth for a different role" })
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(User.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 400, user not the same as route (user route)", async() => {
+
+        const mockReq = {
+            params: { username: "Mario", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/users/Mario/transactions/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        User.findOne.mockResolvedValueOnce(mockUser)
+        categories.findOne.mockResolvedValueOnce(mockCategory)
+
+        verifyAuth.mockReturnValue({ authorized: false, cause: "Requested auth for a different user" })
+
+        await getTransactionsByUserByCategory(mockReq, mockRes)
+
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
     });
 })
 
-//TODO
 describe("getTransactionsByGroup", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+
+    const Transactionsgrouped = [
+        {username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", categories_info: {color: "red"}}, 
+        {username: "Mario", amount: 70,  type: "entertainment", date: "2023-06-19T10:00:00", categories_info: {color: "green"}},
+        {username: "Luigi", amount: 20,  type: "food", date: "2023-07-19T10:00:00", categories_info: {color: "red"}}
+    ]
+
+    const mockUser = {
+        username: "Mario",
+        email: "mario@yyyy.it",
+        password: "xxxxxxx",
+        refreshToken: "xxxx",
+        role:"Regular"
+    }
+
+    const mockUser2 = {
+        username: "Luigi",
+        email: "luigi@yyyy.it",
+        password: "xxxxxxx",
+        refreshToken: "xxxx",
+        role:"Regular"
+    }
+
+    const mockGroup = {
+        name: "Family",
+        members: [
+            {
+                email: "mario@yyyy.it",
+                user: "xxxxxxx"
+            },
+            {
+                email: "luigi@yyyy.it",
+                user: "yyyyyyy"
+            }
+        ] 
+    }
+
+    const mockusersveck = [mockUser, mockUser2]
+    const mocklist = ["Mario", "Luigi"] 
+    
+    //TODO: ADD THIS TEST FOR USER ROUTE
+
+    test.skip("Should return status code 200 (admin route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/groups/Family"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(mockGroup)
+
+        verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+
+        User.find.mockResolvedValue(mockusersveck)
+
+        transactions.aggregate.mockResolvedValueOnce(Transactionsgrouped)
+
+        await getTransactionsByGroup(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(User.find).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(200)
+        expect(mockRes.json).toHaveBeenCalledWith({ data: [
+                                                        {username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", color: "red"}, 
+                                                        {username: "Mario", amount: 70,  type: "entertainment", date: "2023-06-19T10:00:00", color: "green"},
+                                                        {username: "Luigi", amount: 20,  type: "food", date: "2023-07-19T10:00:00", color: "red"}
+                                                    ], refreshedTokenMessage: mockRes.locals.refreshedTokenMessage});
     });
+    
+    test("Should return status code 400, group not in the db (admin route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/groups/Family"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(null)
+        
+        await getTransactionsByGroup(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 400, group not in the db (user route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/groups/Family/transactions"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(null)
+        
+        await getTransactionsByGroup(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 401, user is not admin (admin route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/groups/Family"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(mockGroup)
+
+        verifyAuth.mockReturnValue({ authorized: false, cause: "Requested auth for a different role" })
+
+        await getTransactionsByGroup(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 401, user not in the group (user route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/groups/Family/transactions"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(mockGroup)
+        
+        verifyAuth.mockReturnValue({ authorized: false, cause: "Mail of the token not present in the group" })
+
+        await getTransactionsByGroup(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
 })
 
-//TODO
 describe("getTransactionsByGroupByCategory", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    const Transactionsgrouped = [
+        {username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", categories_info: {color: "red"}}, 
+        {username: "Luigi", amount: 20,  type: "food", date: "2023-07-19T10:00:00", categories_info: {color: "red"}}
+    ]
+
+    const mockUser = {
+        username: "Mario",
+        email: "mario@yyyy.it",
+        password: "xxxxxxx",
+        refreshToken: "xxxx",
+        role:"Regular"
+    }
+
+    const mockUser2 = {
+        username: "Luigi",
+        email: "luigi@yyyy.it",
+        password: "xxxxxxx",
+        refreshToken: "xxxx",
+        role:"Regular"
+    }
+
+    const mockCategory = {
+        type: "food",
+        color: "red"
+    }
+
+    const mockGroup = {
+        name: "Family",
+        members: [
+            {
+                email: "mario@yyyy.it",
+                user: "xxxxxxx"
+            },
+            {
+                email: "luigi@yyyy.it",
+                user: "yyyyyyy"
+            }
+        ] 
+    }
+
+    const mockusersveck = [mockUser, mockUser2]
+
+    //TODO: ADD TWO WORKING TESTS FOR 200 OK
+
+    test("Should return status code 400, group not in the db (admin route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/groups/Family/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(null)
+        
+        await getTransactionsByGroupByCategory(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
     });
+
+    test("Should return status code 400, group not in the db (user route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/groups/Family/transactions/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(null)
+        
+        await getTransactionsByGroupByCategory(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 400, category not in the db (admin route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/groups/Family/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(mockGroup)
+        categories.findOne.mockResolvedValue(null)
+
+        await getTransactionsByGroupByCategory(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 400, category not in the db (user route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/groups/Family/transactions/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(mockGroup)
+        categories.findOne.mockResolvedValue(null)
+        
+        await getTransactionsByGroupByCategory(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(400)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 401, user is not an admin (admin route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/transactions/groups/Family/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(mockGroup)
+        categories.findOne.mockResolvedValue(mockCategory)
+
+        verifyAuth.mockReturnValue({ authorized: false, cause: "Requested auth for a different role" })
+
+        await getTransactionsByGroupByCategory(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
+    test("Should return status code 401, user not in the group (user route)", async() => {
+
+        const mockReq = {
+            params: {name: "Family", category: "food"},
+            body: {},
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken },
+            url: "/api/groups/Family/transactions/category/food"
+        }
+
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        Group.findOne.mockResolvedValueOnce(mockGroup)
+        categories.findOne.mockResolvedValue(mockCategory)
+
+        verifyAuth.mockReturnValue({ authorized: false, cause: "Mail of the token not present in the group" })
+
+        
+        await getTransactionsByGroupByCategory(mockReq, mockRes)
+
+        expect(Group.findOne).toHaveBeenCalled()
+        expect(categories.findOne).toHaveBeenCalled()
+        expect(verifyAuth).toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(401)
+        expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({error: expect.any(String)}))
+    });
+
 })
 
 describe("deleteTransaction", () => { 
