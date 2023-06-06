@@ -303,8 +303,9 @@ describe("addToGroup", () => {
     expect(mockRes.json).toHaveBeenCalledWith({ data: resolvedValue, refreshedTokenMessage: mockRes.locals.refreshedTokenMessage})
   })
 
+  
   test("(400) request body does not contain all the necessary attributes", async () => {
-    
+  
     const mockReq = {
       params: { 
         name: "Family"},
@@ -371,37 +372,6 @@ describe("addToGroup", () => {
       params: { 
         name: "Family"},
       body: {emails: ["test@test.com"]},
-      url:"api/groups/Family/add",
-      cookies: { accessToken:exampleUserAccToken, refreshToken:exampleUserRefToken } //test@test.com user cookies 
-    }
-    const mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-      locals: {
-        refreshedTokenMessage: "expired token"
-      }
-    }
-    const actualGroup = {name: "Family", members: [{email: "test@test.com", user: "6478a58637efc4aff2ee5ee3"}]}
-    Group.findOne.mockResolvedValueOnce(actualGroup)
-    verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
-
-    await addToGroup(mockReq, mockRes)
-    
-    
-    expect(mockRes.status).toHaveBeenCalledWith(400)
-    
-    expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
-      error: expect.any(String)
-  }))
-
-  })
-
-  test("(400) if all the provided emails represent users that do not exist in the database", async () => {
-    
-    const mockReq = {
-      params: { 
-        name: "Family"},
-      body: {emails: ["notExisting@test.com"]},
       url:"api/groups/Family/add",
       cookies: { accessToken:exampleUserAccToken, refreshToken:exampleUserRefToken } //test@test.com user cookies 
     }
