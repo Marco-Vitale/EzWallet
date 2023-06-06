@@ -236,7 +236,7 @@ export const getGroup = async (req, res) => {
         const groupName = req.params.name;
         const retrieveGroup = await Group.findOne({ name: groupName });
         if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
-  
+        
         const emails = retrieveGroup.members.map((member) => member.email); // retrieve the current emails of selected group
   
         if (req.url.includes("insert")){
