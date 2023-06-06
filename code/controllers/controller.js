@@ -415,7 +415,7 @@ export const getTransactionsByUserByCategory = async (req, res) => {
             },
             { $unwind: "$categories_info" }
         ]).then((result) => {
-            let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
+            let dataResponse = result.map(v => Object.assign({}, {username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
             res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
         }).catch(error => { throw (error) })
     }  
@@ -428,14 +428,6 @@ export const getTransactionsByUserByCategory = async (req, res) => {
 }
 
 
-/**
- * Return all transactions made by members of a specific group
-  - Request Body Content: None
-  - Response `data` Content: An array of objects, each one having attributes `username`, `type`, `amount`, `date` and `color`
-  - Optional behavior:
-    - error 401 is returned if the group does not exist
-    - empty array must be returned if there are no transactions made by the group
- */
 export const getTransactionsByGroup = async (req, res) => {
    
     try {
@@ -444,13 +436,15 @@ export const getTransactionsByGroup = async (req, res) => {
 
         const groupName = req.params.name; 
         
+        /*
         const isGroupPresent = await Group.findOne({name: groupName});
         if(!isGroupPresent){
             return res.status(400).json({error: "User not found"});
         }
+        */
         //Get user list form group
         const retrieveGroup = (await Group.findOne({ name: groupName })); 
-        if (!retrieveGroup) res.status(400).json({error: "Group not found"});
+        if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
 
         //ADMIN route: /transactions/groups/:name
         if(req.url.indexOf("/transactions/groups")>=0){
@@ -503,7 +497,7 @@ export const getTransactionsByGroup = async (req, res) => {
         { $unwind: "$categories_info" }
         ]).then((result) => {
         
-        let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
+        let dataResponse = result.map(v => Object.assign({}, {username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
         res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
     }).catch(error => { throw (error) })
 
@@ -528,18 +522,20 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         const groupName = req.params.name;
         const category = req.params.category;
 
-
+        /*
         const isGroupPresent = await Group.findOne({name: groupName});
         if(!isGroupPresent){
             return res.status(400).json({error: "User not found"});
-        }
+        }*/
+
+        const retrieveGroup = (await Group.findOne({ name: groupName })); 
+        if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
 
         const isCategoryPresent = await categories.findOne({type: category});
         if(!isCategoryPresent){
             return res.status(400).json({error: "Category not found"});
         }
-        const retrieveGroup = (await Group.findOne({ name: groupName })); 
-        if (!retrieveGroup) res.status(401).json({error: "Group not found"});
+        
 
          //ADMIN route: /transactions/groups/:name/category/:category
          if(req.url.indexOf("transactions/groups/"+groupName+"/category/"+category)>=0){
@@ -597,7 +593,7 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         { $unwind: "$categories_info" }
         ]).then((result) => {
         
-        let dataResponse = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
+        let dataResponse = result.map(v => Object.assign({}, {username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
         res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
     }).catch(error => { throw (error) })
 
@@ -626,65 +622,61 @@ export const deleteTransaction = async (req, res) => {
         const curAuthUser = req.params.username;
         const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
         const userAuth = verifyAuth(req, res, {authType: "User", username: curAuthUser})         
-       
+        
         
         //Returns a 401 error if the user is not the user whose transactions are being deleted nor an admin
         if(!(adminAuth.authorized || userAuth.authorized)){
             return res.status(401).json({ error: "Forbidden operation: you are not the user nor an admin" });
         }
-
+    
+        /*
         //ROUTE: /users/:username/transactions
         if(req.url.indexOf("users/"+username+"/transactions")>=0){
             
             return res.status(400).json({ error: "Bad request" });
             
         }  
-        
-    
-
+        */  
         
         //Returns a 400 error if the request body does not contain all the necessary attributes
         if(!Object.keys(req.body).includes("_id" )){
             return res.status(400).json({ error: "Bad request: _id information missing" });
         }
+    
         const id = req.body._id;
         //Returns a 400 error if the `_id` in the request body is an empty string
-        if (!id) {
+        if (id.trim() === "") {
             return res.status(400).json({ error: "Bad request: _id is an empty string" });
         }
-
+        
+        const userEx = await User.findOne({ username: username })
+    
         //Returns a 400 error if the username passed as a route parameter does not represent a user in the database
-        if(User.findOne({ username: username }) == null){
+        if(!userEx){
             return res.status(400).json({ error: "Bad request: username not found" });
         }
-      
-
         
-       
         //Returns a 400 error if the `_id` in the request body does not represent a transaction in the database
         
         const tran = await transactions.findById(id);
-        console.log(tran); 
+    
+        if(!tran) return res.status(400).json({ error: "Transaction not in the db" });
+    
         //Returns a 400 error if the `_id` in the request body represents a transaction made by a different user than the one in the route
         if(tran.username != username){
-             return res.status(400).json({ error: "Bad request: not my transaction" });
+                return res.status(400).json({ error: "Bad request: not my transaction" });
         }
-
-        //Returns a 401 error if called by an authenticated user who is not the same user as the one in the route (authType = User)
-        if(tran.username != username){
-            return res.status(401).json({ error: "Unauthorized" });
-        }
-
-
-        await transactions.deleteOne({ _id: req.body._id });
-
+    
+    
+        await transactions.deleteOne({ _id: id });
+    
         return res.status(200).json({data: {message: "Transaction deleted"}, refreshedTokenMessage: res.locals.refreshedTokenMessage})
     }
-        
     catch (error) {
+        console.log(error.message)
         res.status(500).json({error: error.message})    
     }
-}
+}    
 
 /**
  * Delete multiple transactions identified by their ids
@@ -719,17 +711,17 @@ export const deleteTransactions = async (req, res) => {
           
     
         for (const id of ids) {
-            if(id==null){
+            if(id.trim()==""){
                 return res.status(400).json({ error: "Bad request: _id information missing" });
             }
 
-            const transaction = await transactions.findById(id);
-            if (transaction === null) {
-            console.log("Transaction does not exist.");
-            return res.status(400).json({ error: "Id not found in the system: " + id + ". No operation performed." });
-            } else {
-            console.log("Transaction found:", transaction);
-            }
+        const transaction = await transactions.findById(id);
+        if (transaction === null) {
+        console.log("Transaction does not exist.");
+        return res.status(400).json({ error: "Id not found in the system: " + id + ". No operation performed." });
+        } else {
+        console.log("Transaction found:", transaction);
+        }
            
             
         }
