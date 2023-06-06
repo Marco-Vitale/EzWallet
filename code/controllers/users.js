@@ -281,7 +281,7 @@ export const addToGroup = async (req, res) => {
           continue;
         }
 
-        userData = {email: retrieveUser.email};
+        userData = {email: retrieveUser.email, user: retrieveUser._id};
         const duplicate = members.find(member => (member.email == userData.email || member.user == userData.user));
         if(duplicate) continue;
         
@@ -295,7 +295,7 @@ export const addToGroup = async (req, res) => {
         data: {
           'group': {
             name: groupName,
-            members: members
+            members: members.map((member => ({email: member.email})))
           },
           'alreadyInGroup': alreadyInGroup,
           'membersNotFound': membersNotFound
@@ -370,7 +370,7 @@ export const removeFromGroup = async (req, res) => {
         continue;
       }
 
-      userData = {email: retrieveUser.email};
+      userData = {email: retrieveUser.email, user: retrieveUser._id};
       const duplicate = removedMembers.find(member => (member.email == userData.email || member.user == userData.user));
       if(duplicate) continue;
         
@@ -395,7 +395,7 @@ export const removeFromGroup = async (req, res) => {
       data: {
         'group': {
           name: groupName,
-          members: actualMembers
+          members: actualMembers.map((member => ({email: member.email})))
         },
         'noInGroup': noInGroup,
         'membersNotFound': membersNotFound
