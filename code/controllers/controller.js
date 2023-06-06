@@ -53,9 +53,9 @@ export const updateCategory = async (req, res) => {
         if (adminAuth.authorized) { 
             //Admin auth successful
             const oldType = req.params.type;
-            const {newType, newColor} = req.body;
-            const alreadyIn = await categories.findOne({ "type" : newType });
-            if(!newType || !newColor || newType.trim() === "" || newColor.trim() === "" || alreadyIn){
+            const {type, color} = req.body;
+            const alreadyIn = await categories.findOne({ "type" : type });
+            if(!type || !color || type.trim() === "" || color.trim() === "" || alreadyIn){
                 return res.status(400).json({error: "Invalid input values"});
             }
             const exists = await categories.find({"type": oldType});
@@ -63,14 +63,14 @@ export const updateCategory = async (req, res) => {
                 return res.status(400).json({error: "Category does not exist"});
             }
             const query = {"type" : oldType};
-            const update = {$set : {"type": newType, "color": newColor}};
+            const update = {$set : {"type": type, "color": color}};
             const writeResult1 = await categories.updateOne(query, update);
-            const updateTransactions = {$set: {type: newType}};
+            const updateTransactions = {$set: {type: type}};
             const writeResult2 = await transactions.updateMany(query, updateTransactions);
             res.status(200).json({data: {message: "Category edited successfully", count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
         } else {
-            res.status(401).json({ error: adminAuth.message})
+            res.status(401).json({ error: adminAuth.cause})
         }
 
     } catch (error) {
@@ -92,7 +92,7 @@ export const updateCategory = async (req, res) => {
   - all the transactions that have a category that is deleted must have their category changed to the first category type rather than to the default category. Transactions with a category that does not exist are not fetched by the aggregate method, which performs a join operation.
  */
 export const deleteCategory = async (req, res) => {
-    try {
+    //try {
         const cookie = req.cookies
         if (!cookie.accessToken) {
             return res.status(401).json({ error: "Unauthorized" }); // unauthorized
@@ -100,8 +100,8 @@ export const deleteCategory = async (req, res) => {
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
         if (adminAuth.authorized) { 
         //Admin auth successful
-            let types = req.body
-            if(!types || types.some((type) => type.trim() === "" )){
+            let types = req.body.types
+            if(!types || types.length === 0 || types.some((type) => type.trim() === "")){
                 return res.status(400).json({ error: "Input not present or empty string!" });
             }
 
@@ -109,9 +109,12 @@ export const deleteCategory = async (req, res) => {
             if(n_categories.length === 1){
                 return res.status(400).json({ error: "There is only one category left!" });
             }
+            const ordered = await categories.find({}).sort({_id: 1});
+            let oldestType = ordered[0]["type"];
+            let flag = false;
             if(n_categories.length === types.length){
-                const oldestType = await categories.find({}).sort({_id: 1})[0].type;
                 types = types.filter((t) => t !== oldestType);
+                flag = true;
             }
             const inDB = await categories.find({type: {$in: types}});
             if(types.length !== inDB.length){
@@ -119,18 +122,24 @@ export const deleteCategory = async (req, res) => {
             }
             
             const result = await categories.deleteMany({type: {$in: types}});
-            const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: "investment"}});
-            res.status(200).json({data: {message: "Category edited successfully", 
+            if(flag === false && types.some((t) => t === oldestType)){
+                const cats = await categories.find({}).sort({_id: 1});
+                oldestType = cats[0]["type"];
+            }
+            const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: oldestType}});
+            res.status(200).json({data: {message: "Categories deleted",
                                         count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
         } else {
             res.status(401).json({ error: adminAuth.cause});
         }
 
-    } catch (error) {
+    /*} catch (error) {
         res.status(500).json({error: error.message})   
-    }
+    }*/
 }
+
+
 
 /**
  * Return all the categories
@@ -287,27 +296,14 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json(res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage}));
+                    let data_array = result.map(v => Object.assign({}, { username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
                 }).catch(error => { throw (error) })
 
             }else{
                 return res.status(401).json({ error: "Unauthorized" });
             }
-        }
-        else if ((pathComponents[1] == "users" && pathComponents[3] == "transactions") && req.params.username==path[2] && (userAuth||adminAuth)) {
-            transactions.findOne({ username: pathComponents[1]}, function(err, result) {
-                if (err) {
-                  console.error('Error finding user:', err);
-                  res.status(401).json({ error: "User not found"})
-                }
-                else{
-                    console.log('User exists:', result);
-                    result}             
-                                 
-        });
-        } 
-        else {
+        } else {
             const userAuth = verifyAuth(req, res, { authType: "User", username: req.params.username});
             const date_filter = handleDateFilterParams(req);
             const amount_filter = handleAmountFilterParams(req);
@@ -332,8 +328,8 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
+                    let data_array = result.map(v => Object.assign({}, { username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
                 }).catch(error => { throw (error) })
             }else{
                 return res.status(401).json({ error: "Unauthorized" });

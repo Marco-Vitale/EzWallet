@@ -38,12 +38,6 @@ const testerAccessTokenExpired = jwt.sign({
 
 const testerAccessTokenEmpty = jwt.sign({}, process.env.ACCESS_KEY, { expiresIn: "1y" })
 
-describe("handleDateFilterParams", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
-    });
-})
-
 describe("verifyAuth", () => { 
     test("Simple auth: Should return a flag/label setted to true", () => {
         const req = { cookies: { accessToken: testerAccessTokenValid, refreshToken: testerAccessTokenValid } }
@@ -187,11 +181,5 @@ describe("verifyAuth", () => {
         const response = verifyAuth(req, res, { authType: "Simple" })
         expect(Object.values(response).includes(false)).toBe(true)
         expect(response.cause).toEqual("Perform login again")
-    });
-})
-
-describe("handleAmountFilterParams", () => { 
-    test('Dummy test, change it', () => {  
-        expect(true).toBe(true);  
     });
 })

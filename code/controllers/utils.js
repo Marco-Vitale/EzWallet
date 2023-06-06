@@ -16,9 +16,16 @@ function validateDateFormat(dateString) {
 
 
 export const handleDateFilterParams = (req) => {
-    const date = req.query.date;
-    const from = req.query.from;
-    const upTo = req.query.upTo;
+    let date = undefined;
+    let from = undefined;
+    let upTo = undefined;
+
+    if (req.query) {
+        date = req.query.date;
+        from = req.query.from;
+        upTo = req.query.upTo;
+    }
+
     if(date && (from || upTo)){
         throw new Error("filter params inconsistency");
     }
@@ -27,7 +34,7 @@ export const handleDateFilterParams = (req) => {
             throw new Error("Incorrect format fo the date!");
         }
         const start = new Date(`${date}T00:00:00.000Z`);
-        const end = new Date(`${date}T00:00:00.000Z`);
+        const end = new Date(`${date}T23:59:59.999Z`);
         return {$and: [{date: {$gte: start}}, {date: {$lte: end}}]};
     }else if(from){
         if(!validateDateFormat(from)){
@@ -37,7 +44,7 @@ export const handleDateFilterParams = (req) => {
             if(!validateDateFormat(upTo)){
                 throw new Error("Incorrect format of the date!");
             }
-            return {$and: [{date: {$gte: new Date(`${from}T00:00:00.000Z`)}}, {date: {$lte:new Date(`${upTo}T00:00:00.000Z`)}}]};
+            return {$and: [{date: {$gte: new Date(`${from}T00:00:00.000Z`)}}, {date: {$lte:new Date(`${upTo}T23:59:59.999Z`)}}]};
         }else{
             return {date: {$gte: new Date(`${from}T00:00:00.000Z`)}};
         }
@@ -45,7 +52,7 @@ export const handleDateFilterParams = (req) => {
         if(!validateDateFormat(upTo)){
             throw new Error("Incorrect format of the date!");
         }
-        return {date: {$lte: new Date(`${upTo}T00:00:00.000Z`)}};
+        return {date: {$lte: new Date(`${upTo}T23:59:59.999Z`)}};
     }else{
         return {};
     }
