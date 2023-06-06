@@ -80,7 +80,7 @@ export const createGroup = async (req, res) => {
         if(!userAuth.authorized) return res.status(401).json({error: userAuth.cause})
 
         const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
-      
+        
         const {name, memberEmails} = req.body
         if(!name || !memberEmails || name.trim() === "" || memberEmails.some((mail) => mail.trim() === "")) return res.status(400).json({error: "Missing parameters"})
 
@@ -104,7 +104,6 @@ export const createGroup = async (req, res) => {
         //Additional checks on the caller of the creation function
 
         const inAGroup = await Group.findOne({ members: { $elemMatch: { email: decodedAccessToken.email }}})
-
         if(inAGroup){
           return res.status(400).json({ error: "You are already part of a group!"});
         }else{
@@ -153,6 +152,7 @@ export const createGroup = async (req, res) => {
         res.status(200).json({data: {group: { name: name, members: members }, alreadyInGroup: alreadyInGroup, membersNotFound: membersNotFound }, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
     } catch (error) {
+        console.log(error.message);
         res.status(500).json({error: error.message})
     }
 }

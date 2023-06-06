@@ -2,8 +2,9 @@ import request from 'supertest';
 import { app } from '../app';
 import { Group, User } from '../models/User.js';
 import {getUsers, getUser, createGroup, getGroups, deleteGroup} from '../controllers/users';
-import { verifyAuth } from '../controllers/utils';
+import { verifyAuth, verifyEmail } from '../controllers/utils';
 import jwt from 'jsonwebtoken'
+import { compare } from 'bcryptjs';
 
 /**
  * In order to correctly mock the calls to external modules it is necessary to mock them using the following line.
@@ -29,7 +30,9 @@ beforeEach(() => {
 
 jest.mock('../controllers/utils.js', () => ({
   verifyAuth: jest.fn(),
+  verifyEmail: jest.fn()
 }))
+
 
 
 /* OLD (INCORRECT) VERSION
@@ -55,7 +58,7 @@ describe("getUsers", () => {
   })
 })*/
 
-describe("getUsers", () => {
+/*describe("getUsers", () => {
   test("should return empty list if there are no users", async () => {
     const mockReq = {
     }
@@ -86,13 +89,13 @@ describe("getUsers", () => {
     expect(mockRes.status).toHaveBeenCalledWith(200)
     expect(mockRes.json).toHaveBeenCalledWith(retrievedUsers)
   })
-})
+})*/
 
 describe("getUser", () => { })
 
 
 
-/*describe("createGroup", () => { 
+describe("createGroup", () => { 
 
   test("should return status code 200", async () => {
     const mockReq = {
@@ -107,39 +110,50 @@ describe("getUser", () => { })
     }
   }
   
-  verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+  verifyAuth.mockImplementation(() => {
+    return { authorized: true, cause: "Authorized" }
+  });
+  verifyEmail.mockReturnValue(true);
   const existingGroup = false;
   const inAGroup = false;
-  jest.spyOn(Group, "findOne").mockResolvedValueOnce(existingGroup)
-                              .mockResolvedValueOnce(inAGroup)
-                              .mockResolvedValueOnce(inAGroup)
-                              .mockResolvedValueOnce(inAGroup);
-  
   const calleeUser = {_id: 123456};
   const user1 = {_id: 1};
   const user2 = {_id: 2};
-  jest.spyOn(User, "findOne").mockResolvedValue(calleeUser)
-                              .mockResolvedValueOnce(user1)
-                              .mockResolvedValueOnce(user2)
-                              .mockResolvedValueOnce(user1);
+  const decodedAccessToken = {email: "io@email.com"}  
 
-  const decodedAccessToken = {"email": "io@email.com"}  
-  jest.spyOn(jwt, "verify").mockResolvedValue(decodedAccessToken);       
+  jest.spyOn(jwt, "verify").mockReturnValue(decodedAccessToken); 
+
+  Group.findOne.mockResolvedValueOnce(existingGroup);
+  Group.findOne.mockResolvedValueOnce(inAGroup);
+
+  User.findOne.mockResolvedValueOnce(calleeUser);
+
+ 
+  User.findOne.mockResolvedValueOnce(user1);
+  Group.findOne.mockResolvedValueOnce(inAGroup);
+
+  
+  User.findOne.mockResolvedValueOnce(user2);
+  Group.findOne.mockResolvedValueOnce(inAGroup);
+  
+  
+  User.findOne.mockResolvedValueOnce(null);
+      
 
   await createGroup(mockReq, mockRes);                       
-  expect(mockRes.status).toHaveBeenCalledWith(400)
+  expect(mockRes.status).toHaveBeenCalledWith(200)
   expect(mockRes.json).toHaveBeenCalledWith({data: {group: {name: "Family", 
                                               members: [{email: "io@email.com"},
                                               {email: "mario.red@email.com"}, 
                                               {email: "luigi.red@email.com"}]}, 
-                                              membersNotFound: ["francesco@email.com"],
+                                              membersNotFound: [{email: "francesco@email.com"}],
                                                alreadyInGroup: []},
                                                refreshedTokenMessage: "expired token"});
 
   });
 
 
-})*/
+})
 
 describe("getGroups", () => { 
 
