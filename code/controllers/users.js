@@ -77,7 +77,7 @@ export const createGroup = async (req, res) => {
         }
 
         const userAuth = verifyAuth(req, res, { authType: "Simple"})
-        if(!userAuth) return res.status(401).json({error: userAuth.cause})
+        if(!userAuth.authorized) return res.status(401).json({error: userAuth.cause})
 
         const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
       
