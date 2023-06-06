@@ -197,7 +197,9 @@ export const createTransaction = async (req, res) => {
         
         const new_transactions = new transactions({ username, amount, type });
         
-        const result = await transactions.create(new_transactions);
+        new_transactions.save()
+                        .then(data => res.status(200).json({"data":data, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
+                        .catch(err => {throw err})
 
         res.status(200).json({
             data: {
