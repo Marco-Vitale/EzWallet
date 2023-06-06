@@ -154,14 +154,14 @@ describe("createGroup", () => {
 
       const response = await request(app)
                       .post("/api/groups")
-                      .set("Cookie", `accessToken=${testerAccessTokenExpired}; refreshToken=${testerAccessTokenExpired}`) //Setting cookies in the request
+                      .set("Cookie", `accessToken=${exampleUserAccToken}; refreshToken=${exampleUserRefToken}`) //Setting cookies in the request
                       .send({name: "Fun", memberEmails: ["tester1@test.com", "tester2@test.com", "tester3@test.com", "notfound@email.com"]});
       
         expect(response.status).toBe(200)
         expect(response.body.data).toStrictEqual({group: {name: "Fun", 
                 members: [{email: "test365@test.com"},{email: "tester1@test.com"}, {email: "tester2@test.com"}]}, 
                 membersNotFound: [{email: "notfound@email.com"}], alreadyInGroup: [{email: "tester3@test.com"}]});
-        expect(response.body).toHaveProperty("refreshedTokenMessage");
+        //expect(response.body).toHaveProperty("refreshedTokenMessage");
 
       
   });

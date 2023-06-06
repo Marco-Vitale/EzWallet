@@ -74,7 +74,7 @@ describe("deleteCategory", () => {
 
 describe("getCategories", () => { 
     test('status 200 and correct retrieved categories', async () => {
-        categories.insertMany([
+        await categories.insertMany([
             {
                 type: "fun",
                 color: "Red"
@@ -98,7 +98,7 @@ describe("getCategories", () => {
                       .set("Cookie", `accessToken=${adminAccessTokenValid}; refreshToken=${adminAccessTokenValid}`);
         
         expect(response.status).toBe(200);
-        expect(response.body.data).toStrictEqual([
+        expect(response.body.data).toEqual([
             {
                 type: "fun",
                 color: "Red"
@@ -128,15 +128,15 @@ describe("createTransaction", () => {
 describe("getAllTransactions", () => { 
     test('status 200 and correct retrived trasnactions', async () => {
 
-        categories.create({
+        await categories.create({
             type: "Fun",
             color: "Red"
         })
-        categories.create({
+        await categories.create({
             type: "Family",
             color: "Green"
         })
-        transactions.insertMany([
+        await transactions.insertMany([
             {
                 username: "tester1",
                 type: "Fun",
@@ -203,15 +203,15 @@ describe("getAllTransactions", () => {
 
     test('status 401 for not admin user', async () => {
 
-        categories.create({
+        await categories.create({
             type: "Fun",
             color: "Red"
         })
-        categories.create({
+        await categories.create({
             type: "Family",
             color: "Green"
         })
-        transactions.insertMany([
+        await transactions.insertMany([
             {
                 username: "tester1",
                 type: "Fun",

@@ -4,7 +4,9 @@ import { categories, transactions } from '../models/model';
 import { verifyAuth } from '../controllers/utils';
 import { getAllTransactions , getCategories} from '../controllers/controller';
 
-jest.mock('../models/model');
+jest.mock("../models/User.js")
+jest.mock("../models/model.js");
+jest.mock("jsonwebtoken")
 
 beforeEach(() => {
     jest.clearAllMocks();

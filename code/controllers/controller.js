@@ -70,7 +70,7 @@ export const updateCategory = async (req, res) => {
             res.status(200).json({data: {message: "Category edited successfully", count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
         } else {
-            res.status(401).json({ error: adminAuth.message})
+            res.status(401).json({ error: adminAuth.cause})
         }
 
     } catch (error) {
@@ -101,7 +101,7 @@ export const deleteCategory = async (req, res) => {
         if (adminAuth.authorized) { 
         //Admin auth successful
             let types = req.body.types
-            if(!types || types.some((type) => type.trim() === "" )){
+            if(!types || types.length === 0 || types.some((type) => type.trim() === "" )){
                 return res.status(400).json({ error: "Input not present or empty string!" });
             }
 
@@ -295,8 +295,8 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json(res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage}));
+                    let data_array = result.map(v => Object.assign({}, { username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    return res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
                 }).catch(error => { throw (error) })
 
             }else{
@@ -328,8 +328,8 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
+                    let data_array = result.map(v => Object.assign({}, {username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    return res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
                 }).catch(error => { throw (error) })
             }else{
                 return res.status(401).json({ error: "Unauthorized" });
