@@ -433,7 +433,7 @@ export const getTransactionsByGroup = async (req, res) => {
     try {
         
         
-
+ 
         const groupName = req.params.name; 
         
         /*
@@ -445,7 +445,7 @@ export const getTransactionsByGroup = async (req, res) => {
         //Get user list form group
         const retrieveGroup = (await Group.findOne({ name: groupName })); 
         if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
-
+ 
         //ADMIN route: /transactions/groups/:name
         if(req.url.indexOf("/transactions/groups")>=0){
             const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
@@ -453,7 +453,7 @@ export const getTransactionsByGroup = async (req, res) => {
                 return res.status(401).json({ error: "Needed admin privileges" });
             }
         }  
-
+ 
         //REGULAR route: /groups/:name/transactions (check for group)
         else if(req.url.indexOf("/groups/"+req.params.name+"/transactions")>=0){
             const groupEmails = retrieveGroup.members.map((member) => member.email) 
@@ -470,15 +470,17 @@ export const getTransactionsByGroup = async (req, res) => {
      
         let userList = retrieveGroup.members.map((member) => member.user);
         
-        const userArray = await User.find({ _id: { $in: userList} }).select('username')
-        .lean();
+        const userArray = await User.find({ _id: { $in: userList} }, {_id: 0, username: 1})
+        
+        //.select('username').lean();
+        //console.log(userArray);
       
         const usernames = userArray.map((user) => user.username);
-        console.log(userArray);
-
+        //console.log(usernames);
+ 
        // const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
        // if (!auth.authorized) res.status(400).json({error: auth.cause});
-
+ 
         transactions.aggregate([
         {
         $match: {
@@ -500,14 +502,15 @@ export const getTransactionsByGroup = async (req, res) => {
         let dataResponse = result.map(v => Object.assign({}, {username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
         res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
     }).catch(error => { throw (error) })
-
+ 
         
-
+ 
     } catch (error) {
+        console.log(error.message)
         res.status(500).json({error: error.message})  
     }
 }
-
+ 
 /**
  * Return all transactions made by members of a specific group filtered by a specific category
   - Request Body Content: None
@@ -521,22 +524,22 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
     
         const groupName = req.params.name;
         const category = req.params.category;
-
+ 
         /*
         const isGroupPresent = await Group.findOne({name: groupName});
         if(!isGroupPresent){
             return res.status(400).json({error: "User not found"});
         }*/
-
+ 
         const retrieveGroup = (await Group.findOne({ name: groupName })); 
         if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
-
+ 
         const isCategoryPresent = await categories.findOne({type: category});
         if(!isCategoryPresent){
             return res.status(400).json({error: "Category not found"});
         }
         
-
+ 
          //ADMIN route: /transactions/groups/:name/category/:category
          if(req.url.indexOf("transactions/groups/"+groupName+"/category/"+category)>=0){
              const adminAuth = verifyAuth(req, res, {authType: "Admin"})         
@@ -544,7 +547,7 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
                  return res.status(401).json({ error: "Needed admin privileges" });
              }
          } 
-
+ 
         
          //REGULAR route: /groups/:name/transactions/category/:category
          else if(req.url.indexOf("/groups/"+groupName+"/transactions/category/"+category)>=0){
@@ -558,23 +561,25 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
              return res.status(400).json({ error: "Bad request" });
          }
         
-
+ 
         //Get user list form group
         
      
         let userList = retrieveGroup.members.map((member) => member.user);
         
-        const userArray = await User.find({ _id: { $in: userList} }).select('username')
-        .lean();
-      
+        //const userArray = await User.find({ _id: { $in: userList} }).select('username').lean();
+ 
+        const userArray = await User.find({ _id: { $in: userList} }, {_id: 0, username: 1})
+ 
         const usernames = userArray.map((user) => user.username);
-        console.log(userArray);
-       
+        //console.log(userArray);
+        //console.log(usernames);
+ 
     
         transactions.aggregate([
         {
         $match: {
-
+ 
             $and: [
                 { username: {$in: usernames} },
                 { type: req.params.category }
@@ -596,13 +601,14 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         let dataResponse = result.map(v => Object.assign({}, {username: v.username, amount: v.amount, type: v.type, date: v.date, color: v.categories_info.color}))
         res.status(200).json({data: dataResponse, refreshedTokenMessage: res.locals.refreshedTokenMessage });
     }).catch(error => { throw (error) })
-
+ 
         
-
+ 
     } catch (error) {
         res.status(500).json({error: error.message})  
     }
 }
+
 
 /**
  * Delete a transaction made by a specific user
