@@ -281,7 +281,7 @@ export const addToGroup = async (req, res) => {
           continue;
         }
 
-        userData = {email: retrieveUser.email, user: retrieveUser._id};
+        userData = {email: retrieveUser.email};
         const duplicate = members.find(member => (member.email == userData.email || member.user == userData.user));
         if(duplicate) continue;
         
@@ -370,7 +370,7 @@ export const removeFromGroup = async (req, res) => {
         continue;
       }
 
-      userData = {email: retrieveUser.email, user: retrieveUser._id};
+      userData = {email: retrieveUser.email};
       const duplicate = removedMembers.find(member => (member.email == userData.email || member.user == userData.user));
       if(duplicate) continue;
         
