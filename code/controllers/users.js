@@ -198,7 +198,7 @@ export const getGroup = async (req, res) => {
     try {
       const groupName = req.params.name; 
       const retrieveGroup = (await Group.findOne({ name: groupName }));
-      if (!retrieveGroup) res.status(400).json({error: "Group not found"});
+      if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
 
       const emails = retrieveGroup.members.map((member) => member.email);
 
@@ -211,7 +211,7 @@ export const getGroup = async (req, res) => {
       return res.status(200).json({data: {group:{name: retrieveGroup.name, members: members}}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
   
       } catch (error) {
-        res.status(500).json({error: error.message})      
+        return res.status(500).json({error: error.message});
       }
 }
 
@@ -235,25 +235,25 @@ export const addToGroup = async (req, res) => {
     try {
       const groupName = req.params.name;
       const retrieveGroup = await Group.findOne({ name: groupName });
-      if (!retrieveGroup) res.status(400).json({error: "Group not found"});
+      if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
 
       const emails = retrieveGroup.members.map((member) => member.email); // retrieve the current emails of selected group
 
       if (req.url.includes("insert")){
         const adminAuth = verifyAuth(req, res, { authType: "Admin" });
-        if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause}); 
+        if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause}); 
       } else {
         const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
-        if (!auth.authorized) res.status(401).json({error: auth.cause});
+        if (!auth.authorized) return res.status(401).json({error: auth.cause});
       }
 
-      const newMembers = req.body;
+      const newMembers = req.body.emails;
       // check if the body is correct
-      if (!Array.isArray(newMembers) || newMembers.length==0) res.status(400).json({error: "Body doesn't contain all requested attributes"});
+      if (!Array.isArray(newMembers) || newMembers.length==0) return res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
       // check if the passed emails are in the correct format
       for (const email of newMembers) {
-        if(!verifyEmail(email)) res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
+        if(!verifyEmail(email)) return res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
       }
 
       const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
@@ -282,9 +282,9 @@ export const addToGroup = async (req, res) => {
         const result = await Group.updateOne({ name: groupName }, { $push: { members: userData } });
       }
 
-      if (!userData) res.status(400).json({error: "Passed emails do not exist or are already in a group"});
+      if (!userData) return res.status(400).json({error: "Passed emails do not exist or are already in a group"});
 
-      res.status(200).json({
+      return res.status(200).json({
         data: {
           'group': {
             name: groupName,
@@ -297,7 +297,7 @@ export const addToGroup = async (req, res) => {
       });
 
     } catch (error) {
-      res.status(500).json({error: error.message})    
+      return res.status(500).json({error: error.message})    
     }
 }
 
@@ -322,25 +322,25 @@ export const removeFromGroup = async (req, res) => {
   try {
     const groupName = req.params.name; 
     const retrieveGroup = await Group.findOne({ name: groupName });
-    if (!retrieveGroup) res.status(400).json({error: "Group not found"});
+    if (!retrieveGroup) return res.status(400).json({error: "Group not found"});
 
     const emails = retrieveGroup.members.map((member) => member.email);
 
     if (req.url.includes("pull")){
       const adminAuth = verifyAuth(req, res, { authType: "Admin" });
-      if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause}); 
+      if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause}); 
     } else {
       const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
-      if (!auth.authorized) res.status(401).json({error: auth.cause});
+      if (!auth.authorized) return res.status(401).json({error: auth.cause});
     }
 
-    const selectedMembers = req.body;
+    const selectedMembers = req.body.emails;
     // check if the body is correct
-    if (!Array.isArray(selectedMembers) || selectedMembers.length==0) res.status(400).json({error: "Body doesn't contain all requested attributes"});
+    if (!Array.isArray(selectedMembers) || selectedMembers.length==0) return  res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
     // check if the passed emails are in the correct format
     for (const email of selectedMembers) {
-      if(!verifyEmail(email)) res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
+      if(!verifyEmail(email)) return res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
     }
 
     const members = retrieveGroup.members.map((member) => ({email: member.email, user: member.user})); // excluding _id field
@@ -368,14 +368,14 @@ export const removeFromGroup = async (req, res) => {
         
       removedMembers.push(userData);
       if ((members.length - removedMembers.length) == 0) {
-        res.status(400).json({error: `The member ${email} cannot be removed from ${groupName}, it is the last member.`});
+        return res.status(400).json({error: `The member ${email} cannot be removed from ${groupName}, it is the last member.`});
         break;
       }
 
       const result = await Group.updateOne({ name: groupName }, { $pull: { members: userData } });
     }
 
-    if (!userData) res.status(400).json({error: "Passed emails do not exist or are already in a group"});
+    if (!userData) return res.status(400).json({error: "Passed emails do not exist or are already in a group"});
 
     const actualMembers = [];
     for (const member of members) {
@@ -383,7 +383,7 @@ export const removeFromGroup = async (req, res) => {
       if (!check) actualMembers.push(member);
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       data: {
         'group': {
           name: groupName,
@@ -396,7 +396,7 @@ export const removeFromGroup = async (req, res) => {
     });
 
   } catch (error) {
-      res.status(500).json({error: error.message})    
+      return res.status(500).json({error: error.message});
     }
 }
 
