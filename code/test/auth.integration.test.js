@@ -63,7 +63,7 @@ describe('login', () => {
   
   
 
-  test.skip("[REGULAR](status: 200) should login regular user", (done) => {
+  test("[REGULAR](status: 200) should login regular user", (done) => {
     User.create({
       username: "tester",
       email: "test@test.com",
@@ -84,13 +84,13 @@ describe('login', () => {
           expect(response.body.data).toHaveProperty("accessToken")
           expect(response.body.data).toHaveProperty("refreshToken")
 
-          const decodedAccessToken = jwt.verify(response.body.accessToken, ACCESS_KEY);
+          const decodedAccessToken = jwt.verify(response.body.data.accessToken, ACCESS_KEY);
 
           expect(decodedAccessToken.username).toEqual("tester")
           expect(decodedAccessToken.email).toEqual("test@test.com")
           expect(decodedAccessToken.role).toEqual("Regular")
 
-          const decodedRefreshToken = jwt.verify(response.body.refreshToken, ACCESS_KEY);
+          const decodedRefreshToken = jwt.verify(response.body.data.refreshToken, ACCESS_KEY);
 
           expect(decodedRefreshToken.username).toEqual("tester")
           expect(decodedRefreshToken.email).toEqual("test@test.com")
@@ -196,7 +196,7 @@ describe('logout', () => {
     User.create({
       username: "tester",
       email: "test@test.com",
-      password: "tester_pass",
+      password: hashedPassword,
       role: "Regular",
       
     }).then((currUser) => {

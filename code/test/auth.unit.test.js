@@ -3,11 +3,15 @@ import { app } from '../app';
 import { User } from '../models/User.js';
 import { login, logout } from '../controllers/auth.js'; 
 
+
+
+
 import jwt from 'jsonwebtoken';
 const bcrypt = require("bcryptjs")
 
 jest.mock("bcryptjs")
 jest.mock('../models/User.js');
+jest.mock("jsonwebtoken")
 
 describe('register', () => { 
     test('Dummy test, change it', () => {
@@ -33,12 +37,22 @@ describe('login', () => {
         password: 'password123'
       }
     }
-    const res = { 
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
+    const res = {
+      cookie: jest.fn(),
+      locals: {
+          refreshedTokenMessage: undefined
+      },
+      status: jest.fn()
     }
 
-    User.findOne.mockResolvedValueOnce(undefined)
+    const user = {username: "test", email: "test@test.com", password: "password", role: "Regular"}
+
+    User.findOne.mockResolvedValueOnce(user)
+
+    bcrypt.compare.mockResolvedValue(true)
+    jwt.sign.mockReturnValue("token")
+    res.cookie.mockImplementation(() => { return "newAccToken" })
+    User.prototype.save.mockResolvedValueOnce(user);
 
     await login(req, res)
         
@@ -50,6 +64,7 @@ describe('login', () => {
       }
     })
   });
+
 
   test('should return 400 if the request body does not contain all the necessary attributes', async () => {
     const req = { body: {} }
@@ -104,7 +119,7 @@ describe('logout', () => {
     refreshToken: exampleUserRefToken}
 
     User.findOne.mockResolvedValueOnce(resolvedUser)
-    User.prototype.save.mockResolvedValue(true)
+    
 
     await logout(req, res)
     

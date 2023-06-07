@@ -286,14 +286,11 @@ describe("addToGroup", () => {
     verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
     verifyEmail.mockReturnValue({ verified: true, cause: "Verified" })
     User.findOne.mockResolvedValueOnce({email: "luigi.red@email.com", _id: "647edb912de5a0e0e1702caf"}) //OK
-    
-   
     Group.findOne.mockResolvedValueOnce(undefined) //OK
+    Group.updateOne.mockResolvedValueOnce({modifiedCount: 1}) 
     User.findOne.mockResolvedValueOnce({email: "pietro.blue@email.com", _id:"647edba4b9ae4baa5e292dec"}) //OK
     Group.findOne.mockResolvedValueOnce(undefined) //OK
-    Group.findOne.mockResolvedValueOnce(resolvedValue) 
-
-    Group.findOne.mockResolvedValue(true)
+    Group.updateOne.mockResolvedValueOnce({modifiedCount: 2}) 
     
    
 
@@ -526,7 +523,7 @@ describe("addToGroup", () => {
   })
 
 
- })
+})
 
 describe("removeFromGroup", () => { 
 
