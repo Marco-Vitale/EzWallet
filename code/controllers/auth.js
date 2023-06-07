@@ -99,10 +99,10 @@ export const login = async (req, res) => {
 
     const cookie = req.cookies
     const existingUser = await User.findOne({ email: email })
-    if (!existingUser) return res.status(400).json('please you need to register')
+    if (!existingUser) return res.status(400).json({error: 'please you need to register'})
     try {
         const match = await bcrypt.compare(password, existingUser.password)
-        if (!match) return res.status(400).json('wrong credentials')
+        if (!match) return res.status(400).json({error:'wrong credentials'})
         //CREATE ACCESSTOKEN
         const accessToken = jwt.sign({
             email: existingUser.email,
