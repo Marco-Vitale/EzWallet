@@ -20,12 +20,11 @@ export const handleDateFilterParams = (req) => {
     let from = undefined;
     let upTo = undefined;
 
-    if (req.query) {
+    if(req.query){
         date = req.query.date;
         from = req.query.from;
         upTo = req.query.upTo;
     }
-
     if(date && (from || upTo)){
         throw new Error("filter params inconsistency");
     }
@@ -213,11 +212,6 @@ export const verifyAuth = (req, res, info) => {
             return { authorized: false, cause: err.name };
         }
     }
-}
-
-export const verifyEmail = (mail) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regex.test(mail);
 }
 
 
