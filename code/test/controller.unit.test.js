@@ -176,8 +176,85 @@ describe("deleteCategory", () => {
 })
 
 describe("getCategories", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test('return status 200 and correct data', async () => {
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "authorized" }
+        });
+        const data = [{type: "food", color: "red"}, {type: "health", color: "green"}];
+        jest.spyOn(categories, "find").mockResolvedValue(data);
+
+        await getCategories(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalledWith({data: [{type: "food", color: "red"}, 
+        {type: "health", color: "green"}], 
+        refreshedTokenMessage: "expired token"})
+
+
+    });
+
+    test('return status 200 and empty data with empty db', async () => {
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "authorized" }
+        });
+        const data = [];
+        jest.spyOn(categories, "find").mockResolvedValue(data);
+
+        await getCategories(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalledWith({data: [], 
+        refreshedTokenMessage: "expired token"})
+
+
+    });
+
+    test('return status 401 for not admin call', async () => {
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: false, cause: "Unauthorized" }
+        });
+        const data = [{type: "food", color: "red"}, {type: "health", color: "green"}];
+        jest.spyOn(categories, "find").mockResolvedValue(data);
+
+        await getCategories(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalledWith({error: "Unauthorized"});
+
+
     });
 })
 
@@ -421,8 +498,74 @@ describe("createTransaction", () => {
 })
 
 describe("getAllTransactions", () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
+    test('return status 200 and correct data', async () => {
+        /*res.status(200).json({data: [{username: "Mario", amount: 100, type: "food", 
+        date: "2023-05-19T00:00:00", color: "red"}, {username: "Mario", amount: 70, 
+        type: "health", date: "2023-05-19T10:00:00", color: "green"}, {username: "Luigi", 
+        amount: 20, type: "food", date: "2023-05-19T10:00:00", color: "red"} ], 
+        refreshedTokenMessage: res.locals.refreshedTokenMessage})*/
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "authorized" }
+        });
+        const data = [{_id: 1, username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", categories_info: {color: "red"}}, 
+                        {_id: 2, username: "Mario", amount: 70, type: "health", date: "2023-05-19T10:00:00", categories_info: {color: "green"}}, 
+                        {_id: 3, username: "Luigi", amount: 20, type: "food", date: "2023-05-19T10:00:00",categories_info: {color: "red"}} ]
+        jest.spyOn(transactions, "aggregate").mockResolvedValue(data);
+
+        await getAllTransactions(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalledWith({data: [{username: "Mario", amount: 100, type: "food", 
+        date: "2023-05-19T00:00:00", color: "red"}, {username: "Mario", amount: 70, 
+        type: "health", date: "2023-05-19T10:00:00", color: "green"}, {username: "Luigi", 
+        amount: 20, type: "food", date: "2023-05-19T10:00:00", color: "red"} ], 
+        refreshedTokenMessage: "expired token"})
+
+
+    });
+
+    test('return status 401 for not admin call', async () => {
+        /*res.status(200).json({data: [{username: "Mario", amount: 100, type: "food", 
+        date: "2023-05-19T00:00:00", color: "red"}, {username: "Mario", amount: 70, 
+        type: "health", date: "2023-05-19T10:00:00", color: "green"}, {username: "Luigi", 
+        amount: 20, type: "food", date: "2023-05-19T10:00:00", color: "red"} ], 
+        refreshedTokenMessage: res.locals.refreshedTokenMessage})*/
+
+        const mockReq = {
+            cookies: {accessToken: "some"}
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: "expired token"
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: false, cause: "Unauthorized" }
+        });
+        const data = [{_id: 1, username: "Mario", amount: 100, type: "food", date: "2023-05-19T00:00:00", categories_info: {color: "red"}}, 
+                        {_id: 2, username: "Mario", amount: 70, type: "health", date: "2023-05-19T10:00:00", categories_info: {color: "green"}}, 
+                        {_id: 3, username: "Luigi", amount: 20, type: "food", date: "2023-05-19T10:00:00",categories_info: {color: "red"}} ]
+        jest.spyOn(transactions, "aggregate").mockResolvedValue(data);
+
+        await getAllTransactions(mockReq, mockRes);
+        expect(mockRes.status).toHaveBeenCalledWith(401);
+        expect(mockRes.json).toHaveBeenCalledWith({error: "Unauthorized"});
+
+
     });
 })
 

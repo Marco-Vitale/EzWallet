@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel": "^6.23.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -36,6 +37,9 @@
     "supertest": "^6.3.3"
   },
   "jest": {
-    "testTimeout": 30000
+    "testTimeout": 3000,
+    "setupFiles": [
+      "./test/setEnv.js"
+    ]
   }
 }

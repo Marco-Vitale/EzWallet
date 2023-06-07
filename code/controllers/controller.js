@@ -16,18 +16,18 @@ import { handleDateFilterParams, handleAmountFilterParams, verifyAuth } from "./
 export const createCategory = async (req, res) => {
     try {
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-        if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
+        if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
         
         const { type, color } = req.body;
-        if(!type || !color) return res.status(400).json({error: "Missing parameters"});
+        if(!type || !color || type.trim() === "" || color.trim() === "") return res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
         const retrieveCategory = await categories.findOne({type: type});
-        if (retrieveCategory) res.status(400).json({error: `Invalid input values, a category of type ${type} already exists`});
+        if (retrieveCategory) return res.status(400).json({error: `Invalid input values, a category of type ${type} already exists`});
 
-        const new_categories = new categories({ type, color });
-        new_categories.save()
-            .then(data => res.json(data))
-            .catch(err => { throw err })
+        const result =  await categories.create({
+            type: type,
+            color: color
+          });
 
         res.status(200).json({data: {type: type, color: color}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
     } catch (error) {
@@ -70,7 +70,7 @@ export const updateCategory = async (req, res) => {
             res.status(200).json({data: {message: "Category edited successfully", count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
         } else {
-            res.status(401).json({ error: adminAuth.message})
+            res.status(401).json({ error: adminAuth.cause})
         }
 
     } catch (error) {
@@ -100,8 +100,8 @@ export const deleteCategory = async (req, res) => {
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
         if (adminAuth.authorized) { 
         //Admin auth successful
-            let types = req.body
-            if(!types || types.some((type) => type.trim() === "" )){
+            let types = req.body.types
+            if(!types || types.length === 0 || types.some((type) => type.trim() === "" )){
                 return res.status(400).json({ error: "Input not present or empty string!" });
             }
 
@@ -109,9 +109,12 @@ export const deleteCategory = async (req, res) => {
             if(n_categories.length === 1){
                 return res.status(400).json({ error: "There is only one category left!" });
             }
+            const ordered = await categories.find({}).sort({_id: 1});
+            let oldestType = ordered[0]["type"];
+            let flag = false;
             if(n_categories.length === types.length){
-                const oldestType = await categories.find({}).sort({_id: 1})[0].type;
                 types = types.filter((t) => t !== oldestType);
+                flag = true;
             }
             const inDB = await categories.find({type: {$in: types}});
             if(types.length !== inDB.length){
@@ -119,7 +122,11 @@ export const deleteCategory = async (req, res) => {
             }
             
             const result = await categories.deleteMany({type: {$in: types}});
-            const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: "investment"}});
+            if(flag === false && types.some((t) => t === oldestType)){
+                const cats = await categories.find({}).sort({_id: 1});
+                oldestType = cats[0]["type"];
+            }
+            const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: oldestType}});
             res.status(200).json({data: {message: "Category edited successfully", 
                                         count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
@@ -142,7 +149,7 @@ export const deleteCategory = async (req, res) => {
 export const getCategories = async (req, res) => {
     try {
         const auth = verifyAuth(req, res, { authType: "Simple" });
-        if (!auth.authorized) res.status(401).json({error: auth.cause});
+        if (!auth.authorized) return res.status(401).json({error: auth.cause});
 
         let data = await categories.find({})
 
@@ -171,32 +178,34 @@ export const getCategories = async (req, res) => {
 export const createTransaction = async (req, res) => {
     try {
         const userAuth = verifyAuth(req, res, {authType: "User", username: req.params.username});
-        if (!userAuth.authorized) res.status(401).json({error: userAuth.cause});
+        if (!userAuth.authorized) return res.status(401).json({error: userAuth.cause});
         
         const { username, amount, type } = req.body;
-        if(!username || !amount || !type) return res.status(400).json({error: "Missing parameters"});
+        if(!username || !amount || !type || username.trim() === "" || type.trim() === "") 
+            return res.status(400).json({error: "Body doesn't contain all requested attributes"});
 
-        if (isNaN(parseFloat(amount))) res.status(400).json({error: "Error in casting amount to float"});
+        if (isNaN(parseFloat(amount))) return res.status(400).json({error: "Error in casting amount to float"});
 
         const retrieveCategory = await categories.findOne({type: type});
-        if (!retrieveCategory) res.status(400).json({error: "Category doesn't exist"});
+        if (!retrieveCategory) return res.status(400).json({error: "Category doesn't exist"});
 
         const usernameParam = req.params.username;
-        if (usernameParam !== username) res.status(400).json({error: "the username passed in the request body is not equal to the one passed as a route parameter"});
+        if (usernameParam !== username) return res.status(400).json({error: "the username passed in the request body is not equal to the one passed as a route parameter"});
 
         const retrieveUserParam = await User.findOne({username: usernameParam});
-        if (!retrieveUserParam) res.status(400).json({error: "User doesn't exist"});
+        if (!retrieveUserParam) return res.status(400).json({error: "User doesn't exist"});
         
         const new_transactions = new transactions({ username, amount, type });
+        
         new_transactions.save()
-            .then(data => res.json(data))
-            .catch(err => { throw err })
+                        .then(data => res.status(200).json({"data":data, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
+                        .catch(err => {throw err})
 
         res.status(200).json({
             data: {
-                username: new_transactions.username,
-                amount: new_transactions.amount,
-                type: new_transactions.type,
+                username: username,
+                amount: amount,
+                type: type,
                 date: new_transactions.date
             }, 
             refreshedTokenMessage: res.locals.refreshedTokenMessage});
@@ -237,8 +246,8 @@ export const getAllTransactions = async (req, res) => {
             },
             { $unwind: "$categories_info" }
         ]).then((result) => {
-            let data = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-            res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
+            let data = result.map(v => Object.assign({}, { username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+            return res.status(200).json({data: data, refreshedTokenMessage: res.locals.refreshedTokenMessage});
         }).catch(error => { throw (error) })
     } catch (error) {
         res.status(500).json({error: error.message})    
@@ -287,8 +296,8 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json(res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage}));
+                    let data_array = result.map(v => Object.assign({}, { username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    return res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
                 }).catch(error => { throw (error) })
 
             }else{
@@ -320,8 +329,8 @@ export const getTransactionsByUser = async (req, res) => {
                     },
                     { $unwind: "$categories_info" }
                 ]).then((result) => {
-                    let data_array = result.map(v => Object.assign({}, { _id: v._id, username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
-                    res.json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
+                    let data_array = result.map(v => Object.assign({}, {username: v.username, amount: v.amount, type: v.type, color: v.categories_info.color, date: v.date }))
+                    return res.status(200).json({data: data_array, refreshedTokenMessage: res.locals.refreshedTokenMessage});
                 }).catch(error => { throw (error) })
             }else{
                 return res.status(401).json({ error: "Unauthorized" });
