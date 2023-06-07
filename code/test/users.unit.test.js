@@ -24,6 +24,7 @@ beforeEach(() => {
   User.findOne.mockClear()
   Group.findOne.mockClear()
   Group.find.mockClear()
+  jest.clearAllMocks();
 
 
   //additional `mockClear()` must be placed here
@@ -297,7 +298,7 @@ describe("addToGroup", () => {
    
 
     const response = await addToGroup(mockReq, mockRes)
-    console.log(response)
+
     
     expect(mockRes.status).toHaveBeenCalledWith(200)
     expect(mockRes.json).toHaveBeenCalledWith({ data: resolvedValue, refreshedTokenMessage: mockRes.locals.refreshedTokenMessage})
@@ -305,7 +306,8 @@ describe("addToGroup", () => {
 
   
   test("(400) request body does not contain all the necessary attributes", async () => {
-  
+    Group.findOne.mockClear()
+
     const mockReq = {
       params: { 
         name: "Family"},
@@ -336,7 +338,7 @@ describe("addToGroup", () => {
   })
 
   test("(400) group name passed as a route parameter does not represent a group in the database", async () => {
-    
+    Group.findOne.mockClear()
     const mockReq = {
       params: { 
         name: "GroupNotInDB"},
@@ -352,8 +354,8 @@ describe("addToGroup", () => {
       }
     }
     const actualGroup = {name: "Family", members: [{email: "test@test.com", user: "6478a58637efc4aff2ee5ee3"}]}
-    Group.findOne.mockResolvedValueOnce(actualGroup)
-    verifyAuth.mockReturnValue({ authorized: true, cause: "Authorized" })
+    Group.findOne.mockResolvedValueOnce(null)
+    
 
     await addToGroup(mockReq, mockRes)
     
@@ -564,7 +566,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(200)
     expect(mockRes.json).toHaveBeenCalledWith({ data: resolvedValue, refreshedTokenMessage: mockRes.locals.refreshedTokenMessage})
@@ -603,7 +605,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(200)
     expect(mockRes.json).toHaveBeenCalledWith({ data: resolvedValue, refreshedTokenMessage: mockRes.locals.refreshedTokenMessage})
@@ -638,7 +640,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(400)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -676,7 +678,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(400)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -714,7 +716,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(400)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -752,7 +754,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(400)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -790,7 +792,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(400)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -828,7 +830,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(400)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -866,7 +868,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    
     
     expect(mockRes.status).toHaveBeenCalledWith(401)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({

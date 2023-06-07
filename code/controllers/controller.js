@@ -303,7 +303,7 @@ export const getTransactionsByUser = async (req, res) => {
                   res.status(401).json({ error: "User not found"})
                 }
                 else{
-                    console.log('User exists:', result);
+                 
                     result}             
                                  
         });
@@ -472,11 +472,10 @@ export const getTransactionsByGroup = async (req, res) => {
         
         const userArray = await User.find({ _id: { $in: userList} }, {_id: 0, username: 1})
         
-        //.select('username').lean();
-        //console.log(userArray);
+       
       
         const usernames = userArray.map((user) => user.username);
-        //console.log(usernames);
+     
  
        // const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
        // if (!auth.authorized) res.status(400).json({error: auth.cause});
@@ -506,7 +505,7 @@ export const getTransactionsByGroup = async (req, res) => {
         
  
     } catch (error) {
-        console.log(error.message)
+        
         res.status(500).json({error: error.message})  
     }
 }
@@ -572,8 +571,7 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         const userArray = await User.find({ _id: { $in: userList} }, {_id: 0, username: 1})
  
         const usernames = userArray.map((user) => user.username);
-        //console.log(userArray);
-        //console.log(usernames);
+        
  
     
         transactions.aggregate([
@@ -679,7 +677,7 @@ export const deleteTransaction = async (req, res) => {
         return res.status(200).json({data: {message: "Transaction deleted"}, refreshedTokenMessage: res.locals.refreshedTokenMessage})
     }
     catch (error) {
-        console.log(error.message)
+      
         res.status(500).json({error: error.message})    
     }
 }    
@@ -723,10 +721,10 @@ export const deleteTransactions = async (req, res) => {
 
         const transaction = await transactions.findById(id);
         if (transaction === null) {
-        console.log("Transaction does not exist.");
+       
         return res.status(400).json({ error: "Id not found in the system: " + id + ". No operation performed." });
         } else {
-        console.log("Transaction found:", transaction);
+    
         }
            
             

@@ -246,10 +246,11 @@ export const getGroup = async (req, res) => {
           const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
           if (!auth.authorized) return res.status(401).json({error: auth.cause});
         }
-  
+        
         const newMembers = req.body.emails;
+        console.log("new members " + newMembers)
         // check if the body is correct
-        if (!newMembers || newMembers.length==0 || newMembers.some((member) => member.trim() === "")) 
+        if (newMembers == undefined||!newMembers || newMembers.length==0 || newMembers.some((member) => member.trim() === "")) 
           return res.status(400).json({error: "Body doesn't contain all requested attributes"});
   
         // check if the passed emails are in the correct format

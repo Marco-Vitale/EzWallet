@@ -6,8 +6,11 @@ const bcrypt = require("bcryptjs")
 import mongoose, { Model } from 'mongoose';
 import dotenv from 'dotenv';
 
+
 dotenv.config();
 
+let hashedPassword; 
+const ACCESS_KEY = process.env.ACCESS_KEY;
 beforeAll(async () => {
   const dbName = "testingDatabaseAuth";
   const url = `${process.env.MONGO_URI}/${dbName}`;
@@ -16,6 +19,7 @@ beforeAll(async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+  hashedPassword = await bcrypt.hash("tester_pass", 12); 
 
 });
 
@@ -63,7 +67,7 @@ describe('login', () => {
     User.create({
       username: "tester",
       email: "test@test.com",
-      password: "tester_pass",
+      password:  hashedPassword,
       role: "Regular",
       
     }).then((currUser) => {
@@ -80,13 +84,13 @@ describe('login', () => {
           expect(response.body.data).toHaveProperty("accessToken")
           expect(response.body.data).toHaveProperty("refreshToken")
 
-          const decodedAccessToken = jwt.verify(response.body.accessToken, process.env.ACCESS_KEY);
+          const decodedAccessToken = jwt.verify(response.body.accessToken, ACCESS_KEY);
 
           expect(decodedAccessToken.username).toEqual("tester")
           expect(decodedAccessToken.email).toEqual("test@test.com")
           expect(decodedAccessToken.role).toEqual("Regular")
 
-          const decodedRefreshToken = jwt.verify(response.body.refreshToken, process.env.ACCESS_KEY);
+          const decodedRefreshToken = jwt.verify(response.body.refreshToken, ACCESS_KEY);
 
           expect(decodedRefreshToken.username).toEqual("tester")
           expect(decodedRefreshToken.email).toEqual("test@test.com")
@@ -185,7 +189,73 @@ describe('login', () => {
 });
 
 describe('logout', () => { 
-    test('Dummy test, change it', () => {
-        expect(true).toBe(true);
-    });
+  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MjgyOTksImV4cCI6MTY4NjIzMzA5OX0.WVpquYNQ9w1WwzP395o57d8-GNqcNJoU6lVawB4N5m8";
+  const exampleUserAccToken= exampleUserRefToken;
+  test.skip("(status: 200) logout", (done) => {
+
+    User.create({
+      username: "tester",
+      email: "test@test.com",
+      password: "tester_pass",
+      role: "Regular",
+      
+    }).then((currUser) => {
+      request(app)
+        .get("/api/logout")
+        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`) 
+        .then((response) => {
+          expect(response.status).toBe(200)
+          expect(response.body).toHaveProperty("message")
+          expect(response.body.message).toEqual("User logged out")
+          done() // Notify Jest that the test is complete
+        })
+        .catch((err) => done(err))
+    })
+  }) 
+
+  test.skip("(status: 400) does not have refresh token", (done) => {
+    User.create({
+      username: "tester",
+      email: "test@test.com",
+      password: "tester_pass",
+      role: "Regular",
+      
+    }).then((currUser) => {
+      request(app)
+        .get("/api/logout")
+        .set("Cookie", `accessToken=${exampleAdminAccToken}`) 
+        .then((response) => {
+          console.log(response.body)
+          expect(response.status).toBe(400)
+          expect(response.body).toHaveProperty("error")
+         
+          done() // Notify Jest that the test is complete
+        })
+        .catch((err) => done(err))
+    })
+  }) 
+
+  test.skip("(status: 400) the refresh token doesn't rappresent user in database", (done) => {
+    User.create({
+      username: "tester",
+      email: "test@test.com",
+      password: "tester_pass",
+      role: "Regular",
+      
+    }).then((currUser) => {
+      request(app)
+        .post("/api/logout")
+        .set("Cookie", `accessToken=${exampleAdminAccToken}`) 
+        .send({"email": "test@test.com", "password": "tester_pass"})
+        .then((response) => {
+          console.log(response.body)
+          expect(response.status).toBe(400)
+          expect(response.body).toHaveProperty("error")
+         
+          done() // Notify Jest that the test is complete
+        })
+        .catch((err) => done(err))
+    })
+  }) 
+  
 });
