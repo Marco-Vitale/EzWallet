@@ -2,7 +2,10 @@ import request from 'supertest';
 import { app } from '../app';
 import { categories, transactions } from '../models/model';
 import { Group, User } from '../models/User';
-import { verifyAuth } from '../controllers/utils';
+import { verifyAuth,
+     handleAmountFilterParams, 
+     handleDateFilterParams,
+    verifyEmail} from '../controllers/utils';
 import { createCategory, 
     createTransaction, 
     deleteTransaction, 
@@ -24,8 +27,10 @@ jest.mock("../controllers/utils.js");
 
 beforeEach(() => {
   categories.find.mockClear();
+  categories.findOne.mockClear();
   categories.prototype.save.mockClear();
   transactions.find.mockClear();
+  transactions.findOne.mockClear();
   transactions.deleteOne.mockClear();
   transactions.aggregate.mockClear();
   transactions.prototype.save.mockClear();
@@ -708,20 +713,20 @@ describe("deleteCategory", () => {
             return { authorized: false, cause: "Requested auth for a different role" }
         })
 
-        categories.find.mockResolvedValueOnce(listOfCategories)
+        /*categories.find.mockResolvedValueOnce(listOfCategories)
                         .mockReturnValueOnce({
                         sort: jest.fn().mockResolvedValueOnce(listOfCategories),
                         })
                         .mockResolvedValueOnce(foundCategories)
                         .mockReturnValueOnce({
                         sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })
+                        })*/
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        categories.deleteMany.mockResolvedValue(deleteManyResult)
+        //categories.deleteMany.mockResolvedValue(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
+        //categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
 
@@ -808,7 +813,7 @@ describe("getCategories", () => {
         jest.spyOn(categories, "find").mockResolvedValue(data);
 
         await getCategories(mockReq, mockRes);
-        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.status).toHaveBeenCalledWith(401);
         expect(mockRes.json).toHaveBeenCalledWith({error: "Unauthorized"});
 
 

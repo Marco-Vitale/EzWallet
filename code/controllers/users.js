@@ -426,7 +426,7 @@ export const getGroup = async (req, res) => {
     - error 401 is returned if called by an authenticated user who is not part of the group (authType = Group) if the route is `api/groups/:name/remove`
     - error 401 is returned if called by an authenticated user who is not an admin (authType = Admin) if the route is `api/groups/:name/pull`
  */
-export const removeFromGroup = async (req, res) => {
+/*export const removeFromGroup = async (req, res) => {
   try {
     const groupName = req.params.name; 
     const retrieveGroup = await Group.findOne({ name: groupName });
@@ -507,7 +507,7 @@ export const removeFromGroup = async (req, res) => {
   } catch (error) {
       res.status(500).json({error: error.message})    
     }
-}
+}*/
 
 /**
  * Delete a user

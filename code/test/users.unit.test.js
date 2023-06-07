@@ -1,7 +1,16 @@
 import request from 'supertest';
 import { app } from '../app';
 import { Group, User } from '../models/User.js';
-import {getUsers, getUser, createGroup, getGroups, deleteGroup} from '../controllers/users';
+import {getUsers, 
+  getUser, 
+  createGroup, 
+  getGroups, 
+  getGroup,
+  addToGroup,
+  removeFromGroup,
+  deleteGroup, 
+  deleteUser
+  } from '../controllers/users';
 import { verifyAuth, verifyEmail } from '../controllers/utils';
 import jwt from 'jsonwebtoken'
 import { compare } from 'bcryptjs';
@@ -100,13 +109,7 @@ describe("getUsers", () => {
     expect(mockRes.status).toHaveBeenCalledWith(200)
     expect(mockRes.json).toHaveBeenCalledWith({ data: retrievedUsers, refreshedTokenMessage: mockRes.locals.refreshedTokenMessage})
   })
-})*/
-
-describe("getUser", () => {
-  test('Dummy test, change it', () => {
-    expect(true).toBe(true);
-  });
- })
+})
 
 
 
@@ -615,7 +618,6 @@ expect(mockRes.json).toHaveBeenCalledWith({error: "Unauthorized"})
 
 })
 
-})
 
 describe("getGroup", () => { 
 

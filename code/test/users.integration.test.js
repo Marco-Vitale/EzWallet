@@ -455,11 +455,55 @@ describe("getUser", () => {
         .catch((err) => done(err))
     })
   })
-
-
-
-
 })
+
+describe("createGroup", () => { 
+
+  test("status 200 and data object correctly computed", async () => {
+
+    await User.insertMany([{
+      username: "tester365",
+      email: "test365@test.com",
+      password: "tester",
+      refreshToken: exampleUserRefToken
+      },{
+      username: "tester1",
+      email: "tester1@test.com",
+      password: "tester",
+      refreshToken: exampleUserRefToken
+      }, {
+        username: "tester2",
+        email: "tester2@test.com",
+        password: "tester",
+        refreshToken: exampleUserRefToken
+    },
+      {
+        username: "tester3",
+        email: "tester3@test.com",
+        password: "tester",
+        refreshToken: exampleUserRefToken
+      }]);
+
+      await Group.create({
+          name: "Family",
+          members: [{email: "tester3@test.com"}]
+        });
+
+      const response = await request(app)
+                      .post("/api/groups")
+                      .set("Cookie", `accessToken=${exampleUserAccToken}; refreshToken=${exampleUserRefToken}`) //Setting cookies in the request
+                      .send({name: "Fun", memberEmails: ["tester1@test.com", "tester2@test.com", "tester3@test.com", "notfound@email.com"]});
+      
+        expect(response.status).toBe(200)
+        expect(response.body.data).toStrictEqual({group: {name: "Fun", 
+                members: [{email: "test365@test.com"},{email: "tester1@test.com"}, {email: "tester2@test.com"}]}, 
+                membersNotFound: [{email: "notfound@email.com"}], alreadyInGroup: [{email: "tester3@test.com"}]});
+        //expect(response.body).toHaveProperty("refreshedTokenMessage");
+
+      
+  });
+
+  test("status 400 for incorrect body", async () => {
 
     await User.insertMany([{
       username: "tester1",
