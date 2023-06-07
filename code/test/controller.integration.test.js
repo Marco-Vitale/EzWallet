@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 const bcrypt = require("bcryptjs")
 import mongoose, { Model } from 'mongoose';
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
+
 
 dotenv.config();
 

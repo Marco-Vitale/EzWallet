@@ -3,7 +3,16 @@ import { app } from '../app';
 import { categories, transactions } from '../models/model';
 import { Group, User } from '../models/User';
 import { verifyAuth } from '../controllers/utils';
-import { createCategory, createTransaction, deleteTransaction, deleteTransactions, getTransactionsByGroup, getTransactionsByGroupByCategory, getTransactionsByUserByCategory } from '../controllers/controller';
+import { createCategory, 
+    createTransaction, 
+    deleteTransaction, 
+    deleteTransactions, 
+    getTransactionsByGroup, 
+    getTransactionsByGroupByCategory, 
+    getTransactionsByUserByCategory,
+    getCategories,
+     getAllTransactions,
+    } from '../controllers/controller';
 
 jest.mock('../models/model');
 jest.mock("../models/User.js");
