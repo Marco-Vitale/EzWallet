@@ -77,10 +77,10 @@ export const createGroup = async (req, res) => {
         }
 
         const userAuth = verifyAuth(req, res, { authType: "Simple"})
-        if(!userAuth) return res.status(401).json({error: userAuth.cause})
+        if(!userAuth.authorized) return res.status(401).json({error: userAuth.cause})
 
         const decodedAccessToken = jwt.verify(cookie.accessToken, process.env.ACCESS_KEY);
-      
+        
         const {name, memberEmails} = req.body
         if(!name || !memberEmails || name.trim() === "" || memberEmails.some((mail) => mail.trim() === "")) return res.status(400).json({error: "Missing parameters"})
 
@@ -104,14 +104,13 @@ export const createGroup = async (req, res) => {
         //Additional checks on the caller of the creation function
 
         const inAGroup = await Group.findOne({ members: { $elemMatch: { email: decodedAccessToken.email }}})
-
         if(inAGroup){
           return res.status(400).json({ error: "You are already part of a group!"});
         }else{
           const calleeUser = await User.findOne({ email: decodedAccessToken.email });
           if(calleeUser){
             if(!memberEmails.includes(decodedAccessToken.email)){
-              members.push(decodedAccessToken.email)
+              members.push({email: decodedAccessToken.email})
               membersDB.push({ email: decodedAccessToken.email, user: calleeUser._id });
             }
           }else{
@@ -127,13 +126,13 @@ export const createGroup = async (req, res) => {
           if(present){
             const inAGroup = await Group.findOne({ members: { $elemMatch: { email: mail }}})
             if(inAGroup){
-              alreadyInGroup.push(mail)
+              alreadyInGroup.push({email: mail})
             }else{
-              members.push(mail)
+              members.push({email: mail})
               membersDB.push({ email: mail, user: present._id });
             }
           }else{
-            membersNotFound.push(mail);
+            membersNotFound.push({email: mail});
           }
         }
 
@@ -150,9 +149,10 @@ export const createGroup = async (req, res) => {
           members: membersDB
         });
 
-        res.status(200).json({data: {group: { name: name, members: members }, alreadyInGroup, membersNotFound }, refreshedTokenMessage: res.locals.refreshedTokenMessage});
+        res.status(200).json({data: {group: { name: name, members: members }, alreadyInGroup: alreadyInGroup, membersNotFound: membersNotFound }, refreshedTokenMessage: res.locals.refreshedTokenMessage});
 
     } catch (error) {
+        console.log(error.message);
         res.status(500).json({error: error.message})
     }
 }
@@ -171,7 +171,7 @@ export const createGroup = async (req, res) => {
 export const getGroups = async (req, res) => {
     try {
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-      if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
+      if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
 
 
       const groups = await Group.find();
@@ -485,17 +485,17 @@ export const deleteGroup = async (req, res) => {
     try {
 
       const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-      if (!adminAuth.authorized) res.status(400).json({error: adminAuth.cause});
+      if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
 
       const {name} = req.body
 
-      if(!name || name.trim() === "") return res.status(400).json({error: "Missing the name of the group"})
+      if(!name || name.trim() === "") return res.status(400).json({error: "Missing the name of the group"});
 
       const existingGroup = await Group.findOne({ name: req.body.name });
-      if (!existingGroup) return res.status(400).json({ message: "The group does not exist!" });
+      if (!existingGroup) {return res.status(400).json({ error: "The group does not exist!" });}
 
-      const del = await Group.findOneAndDelete({ name: name }
-      ).then(res.status(200).json({data: {message: "The group has been deleted!"}, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
+      const del = await Group.findOneAndDelete({ name: name });
+      return res.status(200).json({data: {message: "The group has been deleted!"}, refreshedTokenMessage: res.locals.refreshedTokenMessage});
     } catch (error) {
       res.status(500).json({error: error.message})    
     }

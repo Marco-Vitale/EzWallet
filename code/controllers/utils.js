@@ -16,9 +16,15 @@ function validateDateFormat(dateString) {
 
 
 export const handleDateFilterParams = (req) => {
-    const date = req.query.date;
-    const from = req.query.from;
-    const upTo = req.query.upTo;
+    let date = undefined;
+    let from = undefined;
+    let upTo = undefined;
+
+    if(req.query){
+        date = req.query.date;
+        from = req.query.from;
+        upTo = req.query.upTo;
+    }
     if(date && (from || upTo)){
         throw new Error("filter params inconsistency");
     }
