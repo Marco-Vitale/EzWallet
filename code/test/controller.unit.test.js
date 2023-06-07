@@ -12,6 +12,9 @@ import { createCategory,
     getTransactionsByUserByCategory,
     getCategories,
      getAllTransactions,
+     getTransactionsByUser,
+     deleteCategory,
+     updateCategory
     } from '../controllers/controller';
 
 jest.mock('../models/model');

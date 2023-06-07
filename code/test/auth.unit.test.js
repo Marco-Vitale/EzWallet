@@ -2,7 +2,7 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { app } from '../app';
 import { User } from '../models/User.js';
-import { register } from '../controllers/auth';
+import { register, registerAdmin, login, logout } from '../controllers/auth';
 import { verifyEmail } from '../controllers/utils';
 const bcrypt = require("bcryptjs")
 

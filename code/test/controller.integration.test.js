@@ -6,9 +6,6 @@ import jwt from 'jsonwebtoken';
 const bcrypt = require("bcryptjs")
 import mongoose, { Model } from 'mongoose';
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
-import { categories, transactions } from '../models/model';
-import { User, Group } from '../models/User';
 
 
 dotenv.config();

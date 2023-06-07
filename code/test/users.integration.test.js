@@ -115,7 +115,7 @@ describe("getUsers", () => {
         })
         .catch((err) => done(err))
     })
-  })*/
+  })
 })
 
 describe("getUser", () => {
