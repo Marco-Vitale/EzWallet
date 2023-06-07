@@ -201,14 +201,14 @@ export const createTransaction = async (req, res) => {
                         .then(data => res.status(200).json({"data":data, refreshedTokenMessage: res.locals.refreshedTokenMessage}))
                         .catch(err => {throw err})
 
-        res.status(200).json({
+        /*res.status(200).json({
             data: {
                 username: username,
                 amount: amount,
                 type: type,
                 date: new_transactions.date
             }, 
-            refreshedTokenMessage: res.locals.refreshedTokenMessage});
+            refreshedTokenMessage: res.locals.refreshedTokenMessage});*/
         
     } catch (error) {
         res.status(500).json({error: error.message})    
@@ -476,7 +476,6 @@ export const getTransactionsByGroup = async (req, res) => {
         .lean();
       
         const usernames = userArray.map((user) => user.username);
-        console.log(userArray);
 
        // const auth = verifyAuth(req, res, {authType: "Group", emails: emails});
        // if (!auth.authorized) res.status(400).json({error: auth.cause});
@@ -565,7 +564,6 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         .lean();
       
         const usernames = userArray.map((user) => user.username);
-        console.log(userArray);
        
     
         transactions.aggregate([
