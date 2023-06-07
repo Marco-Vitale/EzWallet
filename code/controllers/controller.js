@@ -92,7 +92,7 @@ export const updateCategory = async (req, res) => {
   - all the transactions that have a category that is deleted must have their category changed to the first category type rather than to the default category. Transactions with a category that does not exist are not fetched by the aggregate method, which performs a join operation.
  */
 export const deleteCategory = async (req, res) => {
-    try {
+    //try {
         const cookie = req.cookies
         if (!cookie.accessToken) {
             return res.status(401).json({ error: "Unauthorized" }); // unauthorized
@@ -127,17 +127,19 @@ export const deleteCategory = async (req, res) => {
                 oldestType = cats[0]["type"];
             }
             const writeResult2 = await transactions.updateMany({type: {$in: types}}, {$set: {type: oldestType}});
-            res.status(200).json({data: {message: "Category edited successfully", 
+            res.status(200).json({data: {message: "Categories deleted",
                                         count: writeResult2.modifiedCount}, 
                                         refreshedTokenMessage: res.locals.refreshedTokenMessage});
         } else {
             res.status(401).json({ error: adminAuth.cause});
         }
 
-    } catch (error) {
+    /*} catch (error) {
         res.status(500).json({error: error.message})   
-    }
+    }*/
 }
+
+
 
 /**
  * Return all the categories

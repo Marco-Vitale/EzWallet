@@ -115,10 +115,14 @@ describe("getUsers", () => {
         })
         .catch((err) => done(err))
     })
-  })
+  })*/
 })
 
-describe("getUser", () => { })
+describe("getUser", () => {
+  test('Dummy test, change it', () => {
+    expect(true).toBe(true);
+  });
+ })
 
 describe("createGroup", () => { 
 

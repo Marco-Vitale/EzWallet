@@ -91,7 +91,11 @@ describe("getUsers", () => {
   })
 })*/
 
-describe("getUser", () => { })
+describe("getUser", () => {
+  test('Dummy test, change it', () => {
+    expect(true).toBe(true);
+  });
+ })
 
 
 
