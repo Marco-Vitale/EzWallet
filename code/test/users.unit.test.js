@@ -12,8 +12,9 @@ import {getUsers,
   deleteUser
   } from '../controllers/users';
 import { verifyAuth, verifyEmail } from '../controllers/utils';
-import jwt from 'jsonwebtoken'
+import jwt, { verify } from 'jsonwebtoken'
 import { compare } from 'bcryptjs';
+import { transactions } from '../models/model';
 
 /**
  * In order to correctly mock the calls to external modules it is necessary to mock them using the following line.
@@ -1346,7 +1347,161 @@ describe("removeFromGroup", () => {
   })
 })
 
-describe("deleteUser", () => { })
+describe("deleteUser", () => { 
+  test("(status: 200) deletion of user and its group and transactions", async () => {
+    const mockReq = {
+      body: {email: "luigi.red@email.com"}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    
+    verifyAuth.mockImplementation(() => {
+      return { authorized: true, cause: "authorized" }
+    });
+    const resolvedUser = {
+      username: "luigi", 
+      email: "luigi.red@email.com", 
+      password: "pass123",
+      role: "Regular"
+    }; 
+    const resolvedGroup = {name: "groupName", members: [{email: "luigi.red@email.com"}]}
+        
+    jest.spyOn(User, "findOne").mockResolvedValueOnce(resolvedUser);
+    jest.spyOn(Group, "findOne").mockResolvedValueOnce(resolvedGroup);
+    jest.spyOn(Group, "deleteOne").mockResolvedValueOnce(resolvedGroup);
+    jest.spyOn(transactions, "deleteMany").mockResolvedValue({deletedCount: 1});
+    jest.spyOn(User, "remove").mockResolvedValueOnce(resolvedUser);
+    await deleteUser(mockReq, mockRes);
+    expect(mockRes.status).toHaveBeenCalledWith(200)
+    expect(mockRes.json).toHaveBeenCalledWith({data: {deletedTransactions: 1, deletedFromGroup: true}, 
+    refreshedTokenMessage: "expired token"}); 
+
+  })
+
+  test("should return status 400 for body without necessary attributes", async () => {
+    const mockReq = {
+      body: {}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    
+    verifyAuth.mockImplementation(() => {
+      return { authorized: true, cause: "authorized" }
+    });
+    const resolvedUser = {
+      username: "luigi", 
+      email: "luigi.red@email.com", 
+      password: "pass123",
+      role: "Regular"
+    }; 
+    
+
+    await deleteUser(mockReq, mockRes);
+    expect(mockRes.status).toHaveBeenCalledWith(400)
+    expect(mockRes.json).toHaveBeenCalledWith({error: "The body doesn't contain the necessary attributes."})
+
+  })
+
+  test("Returns a 400 error if the email passed in the request body is an empty string", async () => {
+    const mockReq = {
+      body: {email: " "}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    
+    verifyAuth.mockImplementation(() => {
+      return { authorized: true, cause: "authorized" }
+    });
+    const resolvedUser = {
+      username: "luigi", 
+      email: "luigi.red@email.com", 
+      password: "pass123",
+      role: "Regular"
+    }; 
+    
+    
+    await deleteUser(mockReq, mockRes);
+    expect(mockRes.status).toHaveBeenCalledWith(400)
+    expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
+      error: expect.any(String)
+  }))
+
+  })
+
+  test("Returns a 400 error if the email passed in the request body is not in correct email format", async () => {
+    const mockReq = {
+      body: {email: "luigi.red"}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    
+    verifyAuth.mockImplementation(() => {
+      return { authorized: true, cause: "authorized" }
+    });
+    verifyEmail.mockImplementation(() => {return false})
+    
+    
+    await deleteUser(mockReq, mockRes);
+    expect(mockRes.status).toHaveBeenCalledWith(400)
+    expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
+      error: expect.any(String)
+  }))
+
+  })
+  test("Returns a 401 error if called by an authenticated user who is not an admin (authType = Admin)", async () => {
+    const mockReq = {
+      body: {email: "luigi.red"}
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+    
+    verifyAuth.mockImplementation(() => {
+      return { authorized: false, cause: "unauthorized" }
+    });
+    const resolvedUser = {
+      username: "luigi", 
+      email: "luigi.red@email.com", 
+      password: "pass123",
+      role: "Regular"
+    }; 
+    
+    
+    await deleteUser(mockReq, mockRes);
+    expect(mockRes.status).toHaveBeenCalledWith(401)
+    expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
+      error: expect.any(String)
+  }))
+
+  })
+ 
+
+
+})
 
 describe("deleteGroup", () => { 
 
