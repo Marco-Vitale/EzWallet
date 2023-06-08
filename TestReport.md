@@ -19,33 +19,30 @@ The goal of this document is to explain how the application was tested, detailin
 
 # Integration approach
 
-    <Write here the integration sequence you adopted, in general terms (top down, bottom up, mixed) and as sequence
-    (ex: step1: unit A, step 2: unit A+B, step 3: unit A+B+C, etc)> 
-    <Some steps may  correspond to unit testing (ex step1 in ex above)>
-    <One step will  correspond to API testing, or testing unit route.js>
-
 ### Mixed approach:
-* Step #1: unit tests valid input & invalid input
+We decided to divide our team in order to cover different functions from the ones that each of us has implemented. Thus, we work in parallel on different unit and integration tests. 
+
+* Step #1: API testing
+* Step #2 (parallel): unit tests valid input & invalid input
     * controller.js 
     * users.js
     * auth.js
     * utils.js
-* Step #2: integration tests valid input & invalid input
-    * testing external libraries
+* Step #3 (parallel): integration tests valid input & invalid input
+    * testing functions together also with external libraries
     
 
 
 # Tests
 
-   <in the table below list the test cases defined For each test report the object tested, the test level (API, integration, unit) and the technique used to define the test case  (BB/ eq partitioning, BB/ boundary, WB/ statement coverage, etc)>   <split the table if needed>
-
+Decision set: { response 200, responses 400 }
 
 | Test case name | Object(s) tested | Test level | Technique used |
 |--|--|--|--|
-| Returns an object with a property <date> passing <date> (with properties <$gte> and <$lte>) | handleDateFilterParams | Unit | WB - Decision Coverage |
- | Returns an object with a property <date> passing <from> (only $gte property) | handleDateFilterParams | Unit | WB - Decision Coverage |
- | Returns an object with a property <date> passing <upTo> (only $lte property) | handleDateFilterParams | Unit | WB - Decision Coverage |
- | Returns an object with a property <date> passing <from> and <upTo> (with properties <$gte> and <$lte>) | handleDateFilterParams | Unit | WB - Decision Coverage |
+| Returns an object with a property date passing date (with properties <$gte> and <$lte>) | handleDateFilterParams | Unit | WB - Decision Coverage |
+ | Returns an object with a property date passing from (only $gte property) | handleDateFilterParams | Unit | WB - Decision Coverage |
+ | Returns an object with a property date passing upTo (only $lte property) | handleDateFilterParams | Unit | WB - Decision Coverage |
+ | Returns an object with a property date passing from and upTo (with properties <$gte> and <$lte>) | handleDateFilterParams | Unit | WB - Decision Coverage |
  | Returns errors | handleDateFilterParams | Unit | WB - Decision Coverage |
  | Returns empty | handleDateFilterParams | Unit | WB - Decision Coverage |
  | Simple auth: Should return a flag/label setted to true | verifyAuth | Unit | WB - Decision Coverage |
