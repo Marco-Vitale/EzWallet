@@ -1795,7 +1795,202 @@ describe("removeFromGroup", () => {
   
   })
 
-describe("deleteUser", () => { })
+  describe("deleteUser", () => { 
+
+    test("(status 200) should delete one user (no transaction, no group) ", async () => {
+            
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+  
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                        .send({email: "luigi.red@email.com"});
+                      
+        
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("data");
+      expect(response.body.data).toHaveProperty("deletedTransactions");
+      expect(response.body.data).toHaveProperty("deletedFromGroup");
+      expect(response.body.data.deletedTransactions).toBe(0);
+      expect(response.body.data.deletedFromGroup).toBe(false);
+  
+    })
+
+    test("(status 200) should delete one user and group", async () => {
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+  
+      await Group.create({
+        name: "Group1",
+        members: [{email: "luigi.red@email.com"}]
+      });
+  
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                        .send({email: "luigi.red@email.com"});
+                        
+      expect(response.status).toBe(200);
+      expect(response.body.data).toHaveProperty("deletedTransactions");
+      expect(response.body.data).toHaveProperty("deletedFromGroup");
+      expect(response.body.data.deletedTransactions).toBe(0);
+      expect(response.body.data.deletedFromGroup).toBe(true);
+      const group = await Group.findOne({name: "Group1"});
+      expect(group).toBe(null);
+
+  
+    })
+
+    test("(status 200) should delete one user with one transaction", async () => {
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+      await transactions.create(
+        {
+          date: new Date("2021-04-20T00:00:00.000Z"),
+          type: "expense",
+          username: "luigi",
+          amount: 10}); 
+  
+        
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                        .send({email: "luigi.red@email.com"});
+                        
+      expect(response.status).toBe(200);
+      expect(response.body.data).toHaveProperty("deletedTransactions");
+      expect(response.body.data).toHaveProperty("deletedFromGroup");
+      expect(response.body.data.deletedTransactions).toBe(1);
+      expect(response.body.data.deletedFromGroup).toBe(false);
+      const group = await transactions.findOne({username: "luigi"});
+      expect(group).toBe(null);     
+    })
+  
+    test("should return status 400 for a call with wrong body property", async () => {
+                    
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+      
+        
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                        .send({}); 
+      
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error");
+    })
+    
+    test("Returns a 400 error if the email passed in the request body is an empty string", async () => {
+                    
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+      
+        
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                        .send({email: " "}); 
+      
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error");
+    })
+
+    test("Returns a 400 error if the email passed in the request body is not in correct email format", async () => {
+                    
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+      
+        
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                        .send({email: "luigi.red"}); 
+      
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error");
+    })
+
+    test("Returns a 400 error if the email passed in the request body does not represent a user in the database", async () => {
+                    
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+      
+        
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleAdminAccToken}; refreshToken=${exampleAdminRefToken}`) //Setting cookies in the request
+                        .send({email: "alfonso.red@email.com"}); 
+      
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error");
+    })
+
+    test("Returns a 400 error if the email passed in the request body does not represent a user in the database", async () => {
+                    
+      await User.create(
+        {
+          username: "luigi", 
+          email: "luigi.red@email.com", 
+          password: "pass123",
+          role: "Regular"
+        }
+      );
+      
+        
+      const response = await request(app)
+                        .delete("/api/users")
+                        .set("Cookie", `accessToken=${exampleUserAccToken}; refreshToken=${exampleUserRefToken}`) //Setting cookies in the request
+                        .send({email: "alfonso.red@email.com"}); 
+      
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty("error");
+    })
+    
+  })
 
 describe("deleteGroup", () => { 
 
