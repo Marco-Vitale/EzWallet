@@ -12,7 +12,7 @@ beforeEach(() => {
 })
 
 describe("handleDateFilterParams", () => { // TODO: check if $and can be a problem
-    test(`Returns an object with a property "date" passing "date" (with properties "$gte" and "$lte")`, () => {
+    test("Returns an object with a property <date> passing <date> (with properties <$gte> and <$lte>)", () => {
         const req = { query: { date: "2023-06-04" } }
         const res = handleDateFilterParams(req)
 
@@ -26,7 +26,7 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         expect(res.$and.find(element => element.date.$lte).date.$lte.toISOString().slice(0, 19)).toEqual(req.query.date.slice(0, 10) + "T23:59:59")
     });
 
-    test(`Returns an object with a property "date" passing "from" (only $gte property)`, () => {
+    test("Returns an object with a property <date> passing <from> (only $gte property)", () => {
         const req = { query: { from: "2023-01-03" } }
         const res = handleDateFilterParams(req)
 
@@ -36,7 +36,7 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         expect(res.date.$gte.toISOString().slice(0, 19)).toEqual(req.query.from.slice(0, 10) + "T00:00:00")
     });
 
-    test(`Returns an object with a property "date" passing "upTo" (only $lte property)`, () => {
+    test("Returns an object with a property <date> passing <upTo> (only $lte property)", () => {
         const req = { query: { upTo: "2023-01-05" } }
         const res = handleDateFilterParams(req)
 
@@ -46,7 +46,7 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         expect(res.date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T23:59:59")
     });
 
-    test(`Returns an object with a property "date" passing "from" and "upTo" (with properties "$gte" and "$lte")`, () => {
+    test("Returns an object with a property <date> passing <from> and <upTo> (with properties <$gte> and <$lte>)", () => {
         const req = { query: { from: "2023-01-03", upTo: "2023-01-05" } }
         const res = handleDateFilterParams(req)
 
@@ -60,7 +60,7 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         expect(res.$and.find(element => element.date.$lte).date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T23:59:59")
     });
 
-    test(`Returns errors`, () => {
+    test("Returns errors", () => {
         const req1 = { query: { date: "2023-01-03", upTo: "2023-01-05" } }
         const req2 = { query: { date: "01-03.2023" } }
         const req3 = { query: { from: "01-03.2023" } }
@@ -74,7 +74,7 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         expect(() => handleDateFilterParams(req5)).toThrow()
     });
 
-    test(`Returns empty`, () => {
+    test("Returns empty", () => {
         const req = {}
         const res = handleDateFilterParams(req)
 
