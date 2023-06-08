@@ -389,31 +389,6 @@ Coverage |
 
 | Functional Requirements covered |   Test(s) | 
 | ------------------------------- | ----------- | 
-| FR11 (register)                           |  |
-| FR12 (login)                              |  |
-| FR13 (logout)                             |  |
-| FR14 (registerAdmin)                      |  |
-| FR15 (getUsers)                           |  |
-| FR16 (getUser)                            |  |
-| FR17 (deleteUser)                         |  |
-| FR21 (createGroup)                        |  |
-| FR22 (getGroups)                          |  |
-| FR23 (getGroup)                           |  |
-| FR24 (addToGroup)                         |  |
-| FR26 (removeFromGroup)                    |  |
-| FR28 (deleteGroup)                        |  |
-| FR31 (createTransaction)                  |  |
-| FR32 (getAllTransactions)                 |  |
-| FR33 (getTransactionsByUser)              |  |
-| FR34 (getTransactionsByUserByCategory)    |  |
-| FR35 (getTransactionsByGroup)             |  |
-| FR36 (getTransactionsByGroupByCategory)   |  |
-| FR37 (deleteTransaction)                  |  |
-| FR38 (deleteTransactions)                 |  |
-| FR41 (createCategory)                     |  |
-| FR42 (updateCategory)                     |  |
-| FR43 (deleteCategory)                     |  |
-| FR44 (getCategories)                      |  |
 |	FR11 (register)	| 	Should return status code 200 - Unit	|
 |	     	| 	Should return status code 400: the request body does not contain all the necessary attributes - Unit	|
 |	     	| 	Should return status code 400: at least one of the parameters in the request body is an empty string - Unit	|
