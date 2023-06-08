@@ -328,6 +328,29 @@ describe("deleteCategory", () => {
         expect(response.body.data).toHaveProperty("count", 3)
     });
 
+    test("Should return 200 and delete all the categories mantaining the oldest one", async() => {
+        await transactions.insertMany([
+            { username: "user1", type: "category2", amount: 10 },
+            { username: "user1", type: "category2", amount: 2 },
+            { username: "user1", type: "category1", amount: 15 },
+        ])
+        await categories.insertMany([
+            {type: "category1", color: "red"}, 
+            {type: "category2", color: "blue"}, 
+            {type: "category3", color: "green"},
+            {type: "category4", color: "purple"},
+            {type: "category5", color: "yellow"}
+        ])
+        const response = await request(app)
+            .delete("/api/categories")
+            .set("Cookie", `accessToken=${adminAccessTokenValid};refreshToken=${adminAccessTokenValid}`)
+            .send({ types: ["category1", "category2", "category3", "category4", "category5"] })
+        
+        expect(response.status).toBe(200)
+        expect(response.body.data).toHaveProperty("message")
+        expect(response.body.data).toHaveProperty("count", 2)
+    });
+
     test("Should return status code 400: the request body does not contain all the necessary attributes", async() => {
         await transactions.insertMany([
             { username: "user1", type: "category1", amount: 10 },

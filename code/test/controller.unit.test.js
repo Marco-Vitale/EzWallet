@@ -423,6 +423,44 @@ describe("deleteCategory", () => {
                                                                             refreshedTokenMessage: mockRes.locals.refreshedTokenMessage});
     });
 
+    test("Should return status code 200 having categories in the database equal to the categories to be deleted", async() => {
+        const foundCategories = [{type: "category1", color: "red"}, {type: "category2", color: "blue"}];
+
+        const mockReq = {
+            body: { types: ["category1", "category2"] },
+            cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
+        }
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+          locals: {
+            refreshedTokenMessage: ""
+          }
+        }
+
+        verifyAuth.mockImplementation(() => {
+            return { authorized: true, cause: "Authorized" }
+        })
+
+        categories.find.mockResolvedValueOnce(foundCategories)
+                        .mockReturnValueOnce({
+                            sort: jest.fn().mockResolvedValueOnce(foundCategories),
+                        })
+                        .mockResolvedValueOnce([{type: "category2", color: "blue"}])
+
+        const deleteManyResult = { "acknowledged" : true, "deletedCount" : 1 }
+        categories.deleteMany.mockResolvedValueOnce(deleteManyResult)
+
+        const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
+        categories.updateMany.mockResolvedValueOnce(updateManyResult)
+
+        await deleteCategory(mockReq, mockRes)
+
+        expect(mockRes.status).toHaveBeenCalledWith(200)
+        expect(mockRes.json).toHaveBeenCalledWith({data: {message: "Categories deleted", count: updateManyResult.modifiedCount}, 
+                                                                            refreshedTokenMessage: mockRes.locals.refreshedTokenMessage});
+    });
+
     test("Should return status code 400: the request body does not contain all the necessary attributes", async() => {
         const foundCategories = [{type: "category1", color: "red"}, {type: "category2", color: "blue"}];
 
