@@ -184,30 +184,10 @@ describe("registerAdmin", () => {
 })
 
 describe('login', () => { 
-    
-   /**
-   * Database is cleared before each test case, in order to allow insertion of data tailored for each specific test case.
-   */
-   beforeEach(async () => {
+
+  beforeEach(async () => {
     await User.deleteMany({})
   })
-  /* [ADMIN]
-  username: administratortest
-  password: administratorpassword
-  mail: administrator@test.com
-  */
-  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
-  const exampleAdminAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
-
-  /* [REGULAR]
-  {
-    "username":"test", 
-    "email": "test@test.com",
-    "password": "tester"
-}
-  */
-  
-  
 
   test("[REGULAR](status: 200) should login regular user", (done) => {
     User.create({
@@ -221,7 +201,7 @@ describe('login', () => {
         .post("/api/login")
         .send({"email": "test@test.com", "password": "tester_pass"})
         .then((response) => {
-          console.log(response.body)
+          //console.log(response.body)
           expect(response.status).toBe(200)
 
   
@@ -324,7 +304,7 @@ describe('login', () => {
         .send({email: "test@test.com", password:"tester"})
         .then((response) => {
           expect(response.status).toBe(400)
-          console.log(response.body)
+          //console.log(response.body)
           expect(response.body).toHaveProperty("error") 
           done() // Notify Jest that the test is complete
         })
@@ -335,20 +315,18 @@ describe('login', () => {
 });
 
 describe('logout', () => { 
-  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MjgyOTksImV4cCI6MTY4NjIzMzA5OX0.WVpquYNQ9w1WwzP395o57d8-GNqcNJoU6lVawB4N5m8";
-  const exampleUserAccToken= exampleUserRefToken;
-  test.skip("(status: 200) logout", (done) => {
+  test("(status: 200) logout", (done) => {
 
     User.create({
       username: "tester",
       email: "test@test.com",
       password: hashedPassword,
       role: "Regular",
-      
-    }).then((currUser) => {
+      refreshToken: testerAccessTokenValid
+    }).then(() => {
       request(app)
         .get("/api/logout")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`) 
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`) 
         .then((response) => {
           expect(response.status).toBe(200)
           expect(response.body).toHaveProperty("message")
@@ -359,19 +337,18 @@ describe('logout', () => {
     })
   }) 
 
-  test.skip("(status: 400) does not have refresh token", (done) => {
+  test("(status: 400) request does not have refresh token", (done) => {
     User.create({
       username: "tester",
       email: "test@test.com",
-      password: "tester_pass",
+      password: hashedPassword,
       role: "Regular",
-      
-    }).then((currUser) => {
+      refreshToken: testerAccessTokenValid
+    }).then(() => {
       request(app)
         .get("/api/logout")
-        .set("Cookie", `accessToken=${exampleAdminAccToken}`) 
+        .set("Cookie", `accessToken=${testerAccessTokenValid}`) 
         .then((response) => {
-          console.log(response.body)
           expect(response.status).toBe(400)
           expect(response.body).toHaveProperty("error")
          
@@ -381,20 +358,18 @@ describe('logout', () => {
     })
   }) 
 
-  test.skip("(status: 400) the refresh token doesn't rappresent user in database", (done) => {
+  test("(status: 400) the refresh token doesn't rappresent user in database", (done) => {
     User.create({
       username: "tester",
       email: "test@test.com",
-      password: "tester_pass",
+      password: hashedPassword,
       role: "Regular",
-      
-    }).then((currUser) => {
+      refreshToken: testerAccessTokenValid
+    }).then(() => {
       request(app)
-        .post("/api/logout")
-        .set("Cookie", `accessToken=${exampleAdminAccToken}`) 
-        .send({"email": "test@test.com", "password": "tester_pass"})
+        .get("/api/logout")
+        .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenEmpty}`) 
         .then((response) => {
-          console.log(response.body)
           expect(response.status).toBe(400)
           expect(response.body).toHaveProperty("error")
          
@@ -403,5 +378,4 @@ describe('logout', () => {
         .catch((err) => done(err))
     })
   }) 
-  
 });

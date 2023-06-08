@@ -7,23 +7,19 @@ import { verifyEmail } from '../controllers/utils';
 const bcrypt = require("bcryptjs")
 
 jest.mock("bcryptjs")
+jest.mock("jsonwebtoken")
 jest.mock('../models/User.js');
 jest.mock("../controllers/utils.js");
 
 beforeEach(() => {
     jest.clearAllMocks();
-    //additional `mockClear()` must be placed here
+    User.prototype.save.mockClear();
   });
   
   jest.mock('../controllers/utils.js', () => ({
     verifyAuth: jest.fn(),
     verifyEmail: jest.fn(),
   }))
-
-
-jest.mock('../controllers/utils.js', () => ({
-    verifyEmail: jest.fn()
-}))
 
 describe('register', () => { 
     test("Should return status code 200", async() => {
@@ -346,14 +342,11 @@ test('status 400 if there is an already existing username', async () => {
   expect(mockRes.json).toHaveBeenCalledWith({ error: "The username is already used!" })
 });
         
-})
-
-
-    
+})    
 
 describe('login', () => {
   
-  test.skip('should return 200 for correct login', async () => {
+  test('should return 200 for correct login', async () => {
     const req = {
       body: {
         email: 'test@test.com',
@@ -361,21 +354,21 @@ describe('login', () => {
       }
     }
     const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
       cookie: jest.fn(),
       locals: {
           refreshedTokenMessage: undefined
       },
-      status: jest.fn()
     }
 
-    const user = {username: "test", email: "test@test.com", password: "password", role: "Regular"}
+    const user = {username: "test", email: "test@test.com", password: "password", role: "Regular", save: jest.fn()}
 
     User.findOne.mockResolvedValueOnce(user)
-
+    User.prototype.save.mockResolvedValueOnce(user);
     bcrypt.compare.mockResolvedValue(true)
     jwt.sign.mockReturnValue("token")
     res.cookie.mockImplementation(() => { return "newAccToken" })
-    User.prototype.save.mockResolvedValueOnce(user);
 
     await login(req, res)
         
@@ -387,7 +380,6 @@ describe('login', () => {
       }
     })
   });
-
 
   test('should return 400 if the request body does not contain all the necessary attributes', async () => {
     const req = { body: {} }
@@ -415,34 +407,42 @@ describe('login', () => {
     const res = { 
         status: jest.fn().mockReturnThis(),
         json: jest.fn()}
+    verifyEmail.mockImplementation(() => { return false })
     await login(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: 'The email format is not valid!' });
 });
 });
-   
-
 
 describe('logout', () => { 
   const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MjgyOTksImV4cCI6MTY4NjIzMzA5OX0.WVpquYNQ9w1WwzP395o57d8-GNqcNJoU6lVawB4N5m8";
   const exampleUserAccToken= exampleUserRefToken;
-  test.skip('200 logout', async () => {
+
+  test('200 logout', async () => {
     const req = {
       cookies: {accessToken: exampleUserAccToken, refreshToken: exampleUserRefToken},
     }
-    const res = { 
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-        cookie: jest.fn()
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      cookie: jest.fn(),
+      locals: {
+          refreshedTokenMessage: undefined
+      },
     }
-    const resolvedUser = {username: "tester",
-    email: "test@test.com",
-    password: "tester_pass",
-    role: "Regular",
-    refreshToken: exampleUserRefToken}
+    const resolvedUser = {
+      username: "tester",
+      email: "test@test.com",
+      password: "tester_pass",
+      role: "Regular",
+      refreshToken: exampleUserRefToken,
+      save: jest.fn()
+    }
 
     User.findOne.mockResolvedValueOnce(resolvedUser)
-    
+    User.prototype.save.mockResolvedValueOnce(resolvedUser);
+
+    res.cookie.mockImplementation(() => { return "newAccToken" })
 
     await logout(req, res)
     
