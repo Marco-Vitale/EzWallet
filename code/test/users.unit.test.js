@@ -111,8 +111,6 @@ describe("getUsers", () => {
   })
 })
 
-
-
 describe("createGroup", () => { 
 
   test("should return status code 200", async () => {
@@ -562,62 +560,62 @@ describe("getUser", () => {
 
 })
 
+describe("getGroups", () => {
+  
   test("should return status 200", async () => {
     const mockReq = {
-  }
-  const mockRes = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn(),
-    locals: {
-      refreshedTokenMessage: "expired token"
     }
-  }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
   
-  verifyAuth.mockImplementation(() => {
-    return { authorized: true, cause: "Authorized" }
-  });
-  const groups = [{"name": "Family", "members": [{"email": "io@gmail.com", "user": 1}, {"email": "tu@gmail.com", "user": 2}]}];
-  const result = {data: [{"name": "Family", "members": 
-                          [{"email": "io@gmail.com"}, 
-                          {"email": "tu@gmail.com"}]}], 
-                          refreshedTokenMessage: "expired token"};
-  jest.spyOn(Group, "find").mockResolvedValue(groups);
+    verifyAuth.mockImplementation(() => {
+      return { authorized: true, cause: "Authorized" }
+    });
+    const groups = [{"name": "Family", "members": [{"email": "io@gmail.com", "user": 1}, {"email": "tu@gmail.com", "user": 2}]}];
+    const result = {data: [{"name": "Family", "members": 
+                            [{"email": "io@gmail.com"}, 
+                            {"email": "tu@gmail.com"}]}], 
+                            refreshedTokenMessage: "expired token"};
+    jest.spyOn(Group, "find").mockResolvedValue(groups);
 
-  await getGroups(mockReq, mockRes);
-  
-  expect(mockRes.status).toHaveBeenCalledWith(200)
-  expect(mockRes.json).toHaveBeenCalledWith(result);
+    await getGroups(mockReq, mockRes);
+    
+    expect(mockRes.status).toHaveBeenCalledWith(200)
+    expect(mockRes.json).toHaveBeenCalledWith(result);
+  })
 
+  test("should return status 401 for call by a unauthorized user", async () => {
+    const mockReq = {
+    }
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      locals: {
+        refreshedTokenMessage: "expired token"
+      }
+    }
+
+    verifyAuth.mockImplementation(() => {
+      return { authorized: false, cause: "Unauthorized" }
+    });
+    const groups = [{"name": "Family", "members": [{"email": "io@gmail.com", "user": 1}, {"email": "tu@gmail.com", "user": 2}]}];
+    const result = {data: [{"name": "Family", "members": 
+                            [{"email": "io@gmail.com"}, 
+                            {"email": "tu@gmail.com"}]}], 
+                            refreshedTokenMessage: "expired token"};
+    jest.spyOn(Group, "find").mockResolvedValue(groups);
+
+    await getGroups(mockReq, mockRes);
+
+    expect(mockRes.status).toHaveBeenCalledWith(401)
+    expect(mockRes.json).toHaveBeenCalledWith({error: "Unauthorized"})
+  })
 })
-
-test("should return status 401 for call by a unauthorized user", async () => {
-  const mockReq = {
-}
-const mockRes = {
-  status: jest.fn().mockReturnThis(),
-  json: jest.fn(),
-  locals: {
-    refreshedTokenMessage: "expired token"
-  }
-}
-
-verifyAuth.mockImplementation(() => {
-  return { authorized: false, cause: "Unauthorized" }
-});
-const groups = [{"name": "Family", "members": [{"email": "io@gmail.com", "user": 1}, {"email": "tu@gmail.com", "user": 2}]}];
-const result = {data: [{"name": "Family", "members": 
-                        [{"email": "io@gmail.com"}, 
-                        {"email": "tu@gmail.com"}]}], 
-                        refreshedTokenMessage: "expired token"};
-jest.spyOn(Group, "find").mockResolvedValue(groups);
-
-await getGroups(mockReq, mockRes);
-
-expect(mockRes.status).toHaveBeenCalledWith(401)
-expect(mockRes.json).toHaveBeenCalledWith({error: "Unauthorized"})
-
-})
-
 
 describe("getGroup", () => { 
 
@@ -1338,7 +1336,7 @@ describe("removeFromGroup", () => {
    
 
     const response = await removeFromGroup(mockReq, mockRes)
-    console.log(response)
+    //console.log(response)
     
     expect(mockRes.status).toHaveBeenCalledWith(401)
     expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -1346,9 +1344,6 @@ describe("removeFromGroup", () => {
   }))
     
   })
-
- 
-
 })
 
 describe("deleteUser", () => { })

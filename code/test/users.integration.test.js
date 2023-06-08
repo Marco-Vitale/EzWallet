@@ -191,18 +191,12 @@ describe("getUsers", () => {
           }
           
           expect(response.body.data).toHaveLength(3)
-          //Controllo sui singoli dati
-          expect(response.body.data[0].username).toEqual("Mario")
-          expect(response.body.data[0].email).toEqual("mario.red@email.com")
-          expect(response.body.data[0].role).toEqual("Regular")
+          expect(response.body.data).toEqual(expect.arrayContaining([
+            {username: "Mario", email: "mario.red@email.com", role: "Regular"},
+            {username: "Luigi", email: "luigi.red@email.com", role: "Regular"},
+            {username: "admin", email: "admin@email.com", role: "Admin"}
+          ]))
 
-          expect(response.body.data[1].username).toEqual("Luigi")
-          expect(response.body.data[1].email).toEqual("luigi.red@email.com")
-          expect(response.body.data[1].role).toEqual("Regular")
-
-          expect(response.body.data[2].username).toEqual("admin")
-          expect(response.body.data[2].email).toEqual("admin@email.com")
-          expect(response.body.data[2].role).toEqual("Admin")          
           done() // Notify Jest that the test is complete
         })
         .catch((err) => done(err))
@@ -232,8 +226,6 @@ describe("getUsers", () => {
   })
 
 })
-
-
 
 describe("getUser", () => { 
   /**
