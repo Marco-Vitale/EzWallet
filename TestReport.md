@@ -385,8 +385,6 @@ Coverage |
 
 ## Coverage of FR
 
-<Report in the following table the coverage of  functional requirements (from official requirements) >
-
 | Functional Requirements covered |   Test(s) | 
 | ------------------------------- | ----------- | 
 |	FR11 (register)	| 	Should return status code 200 - Unit	|
@@ -684,10 +682,4 @@ Coverage |
 
 ## Coverage white box
 
-Report here the screenshot of coverage values obtained with jest-- coverage 
-
-
-
-
-
-
+![coverage_screenshot](images/V2/coverage_screenshot.png)
