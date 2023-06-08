@@ -429,18 +429,6 @@ Coverage |
 |	     	| 	Should return 400: the email in the request body is not in a valid email format - Integration	|
 |	     	| 	Should return 400: the username in the request body identifies an already existing use - Integration	|
 |	     	| 	Should return 400: the email in the request body identifies an already existing user - Integration	|
-|	FR14 (registerAdmin)	| 	status 200 when successful creates an admin - Unit	|
-|	     	| 	status 400 req does not contain all inputs - Unit	|
-|	     	| 	status 400 if req contains an empty param - Unit	|
-|	     	| 	status 400 if email is not valid - Unit	|
-|	     	| 	status 400 if there is an already existing email - Unit	|
-|	     	| 	status 400 if there is an already existing username - Unit	|
-|	     	| 	status 200 and message returned - Integration	|
-|	     	| 	status 400 for missing body content - Integration	|
-|	     	| 	status 400 for empty string body content - Integration	|
-|	     	| 	status 400 for invalid email format - Integration	|
-|	     	| 	status 400 for already existing username - Integration	|
-|	     	| 	status 400 for already existing email - Integration	|
 |	FR12 (login)	| 	should return 200 for correct login - Unit	|
 |	     	| 	should return 400 if the request body does not contain all the necessary attributes - Unit	|
 |	     	| 	should return 400 if at least one of the parameters in the request body is an empty string - Unit	|
@@ -455,48 +443,124 @@ Coverage |
 |	     	| 	(status: 200) logout - Integration	|
 |	     	| 	(status: 400) request does not have refresh token - Integration	|
 |	     	| 	(status: 400) the refresh token doesnt rappresent user in database - Integration	|
-|	FR41 (createCategory)	| 	Should return status code 200 - Unit	|
-|	     	| 	Should return status code 400, missing parameters - Unit	|
-|	     	| 	Should return status code 400, a parameter has an empty string - Unit	|
-|	     	| 	Should return status code 400, already existing category - Unit	|
-|	     	| 	Should return status code 401, the user is not an admin - Unit	|
-|	     	| 	Should return status code 200 - Integration	|
-|	     	| 	Should return status code 400, missing parameters - Integration	|
-|	     	| 	Should return status code 400, parametes has an empty string - Integration	|
-|	     	| 	Should return status code 400, already existing category - Integration	|
-|	     	| 	Should return status code 401, the user is not an admin - Integration	|
-|	FR42 (updateCategory)	| 	Should return status code 200 - Unit	|
-|	     	| 	Should return status code 400: request body does not contain all the necessary attributes - Unit	|
-|	     	| 	Should return status code 400: at least one of the parameters in the request body is an empty string - Unit	|
-|	     	| 	Should return status code 400: the type of category passed as a route parameter does not represent a category in the database - Unit	|
-|	     	| 	Should return status code 400: the type of category passed in the request body as the new type represents an already existing category in the database and that category is not the same as the requested one - Unit	|
-|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Unit	|
-|	     	| 	Should return 200 and update the category - Integration	|
-|	     	| 	Should return status code 400: request body does not contain all the necessary attributes - Integration	|
-|	     	| 	Should return status code 400: at least one of the parameters in the request body is an empty string - Integration	|
-|	     	| 	Should return status code 400: the type of category passed as a route parameter does not represent a category in the database - Integration	|
-|	     	| 	Should return status code 400: the type of category passed in the request body as the new type represents an already existing category in the database and that category is not the same as the requested one - Integration	|
-|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Integration	|
-|	FR43 (deleteCategory)	| 	Should return status code 200 - Unit	|
-|	     	| 	Should return status code 200 having categories in the database equal to the categories to be deleted - Unit	|
-|	     	| 	Should return status code 400: the request body does not contain all the necessary attributes - Unit	|
-|	     	| 	Should return status code 400: there is only one category in the database - Unit	|
-|	     	| 	Should return status code 400: at least one of the types in the array is an empty string - Unit	|
-|	     	| 	Should return status code 400: the array passed in the request body is empty - Unit	|
-|	     	| 	Should return status code 400: at least one of the types in the array does not represent a category in the database - Unit	|
-|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Unit	|
-|	     	| 	Should return 200 and delete the category - Integration	|
-|	     	| 	Should return 200 and delete all the categories mantaining the oldest one - Integration	|
-|	     	| 	Should return status code 400: the request body does not contain all the necessary attributes - Integration	|
-|	     	| 	Should return status code 400: there is only one category in the database - Integration	|
-|	     	| 	Should return status code 400: at least one of the types in the array is an empty string - Integration	|
-|	     	| 	Should return status code 400: the array passed in the request body is empty - Integration	|
-|	     	| 	Should return status code 400: at least one of the types in the array does not represent a category in the database - Integration	|
-|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Integration	|
-|	FR44 (getCategories)	| 	return status 200 and correct data - Unit	|
-|	     	| 	return status 200 and empty data with empty db - Unit	|
-|	     	| 	return status 401 for not admin call - Unit	|
-|	     	| 	status 200 and correct retrieved categories - Integration	|
+|	FR14 (registerAdmin)	| 	status 200 when successful creates an admin - Unit	|
+|	     	| 	status 400 req does not contain all inputs - Unit	|
+|	     	| 	status 400 if req contains an empty param - Unit	|
+|	     	| 	status 400 if email is not valid - Unit	|
+|	     	| 	status 400 if there is an already existing email - Unit	|
+|	     	| 	status 400 if there is an already existing username - Unit	|
+|	     	| 	status 200 and message returned - Integration	|
+|	     	| 	status 400 for missing body content - Integration	|
+|	     	| 	status 400 for empty string body content - Integration	|
+|	     	| 	status 400 for invalid email format - Integration	|
+|	     	| 	status 400 for already existing username - Integration	|
+|	     	| 	status 400 for already existing email - Integration	|
+|	FR15 (getUsers)	| 	(status 200) should return empty list if there are no users - Unit	|
+|	     	| 	(status 200) should retrieve list of all users - Unit	|
+|	     	| 	[ADMIN](status: 200) should retrieve list of the only one user - Integration	|
+|	     	| 	[ADMIN](status: 200) no user in the system, returned empty list - Integration	|
+|	     	| 	[ADMIN](status: 200) should retrieve list of all users - Integration	|
+|	     	| 	[REGULAR](status: 401) authError if im authenticated as regular user - Integration	|
+|	FR16 (getUser)	| 	(status 200) should retrieve another user if i have auth - Unit	|
+|	     	| 	(status 400) user not found, should retreive an error - Unit	|
+|	     	| 	(status 401) no auth - Unit	|
+|	     	| 	[ADMIN](status: 200) should retrieve himself - Integration	|
+|	     	| 	[ADMIN](status: 200) should retrieve another user - Integration	|
+|	     	| 	[REGULAR](status: 200) should retrieve himself - Integration	|
+|	     	| 	[REGULAR](status: 401) should not retrieve other user - Integration	|
+|	     	| 	[ADMIN](status: 400) user not found - Integration	|
+|	FR17 (deleteUser)	| 	(status: 200) deletion of user and its group and transactions - Unit	|
+|	     	| 	should return status 400 for body without necessary attributes - Unit	|
+|	     	| 	Returns a 400 error if the email passed in the request body is an empty string - Unit	|
+|	     	| 	Returns a 400 error if the email passed in the request body is not in correct email format - Unit	|
+|	     	| 	Returns a 401 error if called by an authenticated user who is not an admin (authType = Admin) - Unit	|
+|	     	| 	(status 200) should delete one user (no transaction, no group)  - Integration	|
+|	     	| 	(status 200) should delete one user and group - Integration	|
+|	     	| 	(status 200) should delete one user with one transaction - Integration	|
+|	     	| 	should return status 400 for a call with wrong body property - Integration	|
+|	     	| 	Returns a 400 error if the email passed in the request body is an empty string - Integration	|
+|	     	| 	Returns a 400 error if the email passed in the request body is not in correct email format - Integration	|
+|	     	| 	Returns a 400 error if the email passed in the request body does not represent a user in the database [called by admin] - Integration	|
+|	     	| 	Returns a 400 error if the email passed in the request body does not represent a user in the database [called by user] - Integration	|
+|	FR21 (createGroup)	| 	should return status code 200 - Unit	|
+|	     	| 	should return status code 400 for incomplete body req - Unit	|
+|	     	| 	should return status code 400 for empty name in req - Unit	|
+|	     	| 	should return status code 400 for existing group - Unit	|
+|	     	| 	should return status code 400 for existing group - Unit	|
+|	     	| 	should return status code 400 if the caller is in a group - Unit	|
+|	     	| 	should return status code 400 for email invalid format - Unit	|
+|	     	| 	should return status code 400 for empty email string - Unit	|
+|	     	| 	should return status code 400 for duplicated memeber emails - Unit	|
+|	     	| 	should return status code 401 for unauthenticated user - Unit	|
+|	     	| 	status 200 and data object correctly computed - Integration	|
+|	     	| 	status 400 for incorrect body - Integration	|
+|	     	| 	status 400 for empty group name - Integration	|
+|	     	| 	status 400 for already present group - Integration	|
+|	     	| 	status 400 for already used/do not exist emails in a group - Integration	|
+|	     	| 	status 400 for invalid email format - Integration	|
+|	     	| 	status 400 for empty member emails with and without blank spaces - Integration	|
+|	     	| 	status 401 for unauthenticated user - Integration	|
+|	FR22 (getGroups)	| 	should return status 200 - Unit	|
+|	     	| 	should return status 401 for call by a unauthorized user - Unit	|
+|	     	| 	should return status 200 for a call by auth admin - Integration	|
+|	     	| 	should return status 401 for a call by non admin user - Integration	|
+|	FR23 (getGroup)	| 	(status 200) should return all the group information - Unit	|
+|	     	| 	(400) group not in the database - Unit	|
+|	     	| 	(401) group doesnt have auth  - Unit	|
+|	     	| 	[REGULAR](status: 200) should retrieve group of given user in it - Integration	|
+|	     	| 	[REGULAR](status: 401) should retrieve error cause im not in the group - Integration	|
+|	     	| 	[ADMIN](status: 200) should retrieve group where im not in - Integration	|
+|	     	| 	[ADMIN](status: 400) should retrieve error if group doesnt exist - Integration	|
+|	     	| 	[REGUALAR](status: 400) should retrieve error if group doesnt exist - Integration	|
+|	FR24 (addToGroup)	| 	(status 200)[REGULAR] should return all added user - Unit	|
+|	     	| 	(400) request body does not contain all the necessary attributes - Unit	|
+|	     	| 	(400) group name passed as a route parameter does not represent a group in the database - Unit	|
+|	     	| 	(400) if all the provided emails represent users that are already in a group - Unit	|
+|	     	| 	(400) if all the provided emails represent users that do not exist in the database - Unit	|
+|	     	| 	(400) at least one of the member emails is an empty string - Unit	|
+|	     	| 	(401) if called by an authenticated user who is not part of the group (authType = Group) - Unit	|
+|	     	| 	(401) if called by an authenticated user who is not an admin (authType = Admin) - Unit	|
+|	     	| 	[REGULAR](status: 200) should retrieve group of given user in it - Integration	|
+|	     	| 	[ADMIN](status: 200) should retrieve group of given user not in it - Integration	|
+|	     	| 	[REGULAR](status: 400) the request body does not contain all the necessary attributes - Integration	|
+|	     	| 	[REGULAR](status: 400) the group name passed as a route parameter does not represent a group in the database - Integration	|
+|	     	| 	[REGULAR](status: 400) all the provided emails represent users that are already in a group  - Integration	|
+|	     	| 	[REGULAR](status: 400) all the provided emails represent users do not exist in the database  - Integration	|
+|	     	| 	[REGULAR](status: 400) at least one of the member emails is not in a valid email format  - Integration	|
+|	     	| 	[REGULAR](status: 400) at least one of the member emails is an empty string  - Integration	|
+|	     	| 	[REGULAR](status: 401) called by an authenticated user who is not part of the group (authType = Group) - Integration	|
+|	     	| 	[REGULAR](status: 401) called by an authenticated user who is not part of the group (authType = Admin) - Integration	|
+|	FR26 (removeFromGroup)	| 	(status 200)[REGULAR] should return group without removed users - Unit	|
+|	     	| 	(status 200)[ADMIN] should return group without removed users - Unit	|
+|	     	| 	(400) request body does not contain all the necessary attributes - Unit	|
+|	     	| 	(400) group name passed as a route parameter does not represent a group in the database - Unit	|
+|	     	| 	(400) all the provided emails represent users that do not exist in the database - Unit	|
+|	     	| 	(400) at least one of the emails is not in a valid email format - Unit	|
+|	     	| 	(400) at least one of the emails is an empty string - Unit	|
+|	     	| 	(400) the group contains only one member before deleting any user - Unit	|
+|	     	| 	(401) called by an authenticated user who is not part of the group (authType = Group) - Unit	|
+|	     	| 	(401) called by an authenticated user who is not admin (authType = Admin) - Unit	|
+|	     	| 	[REGULAR](status: 200) should retrieve group of given user in it - Integration	|
+|	     	| 	[ADMIN](status: 200) should retrieve group of given user not in it - Integration	|
+|	     	| 	[REGULAR](status: 400) the request body does not contain all the necessary attributes - Integration	|
+|	     	| 	[REGULAR](status: 400) the group name passed as a route parameter does not represent a group in the database - Integration	|
+|	     	| 	[REGULAR](status: 400) all the provided emails represent users that do not belong to the group - Integration	|
+|	     	| 	[REGULAR](status: 400) all the provided emails represent users do not exist in the database  - Integration	|
+|	     	| 	[REGULAR](status: 400) at least one of the member emails is not in a valid email format  - Integration	|
+|	     	| 	[REGULAR](status: 400) at least one of the member emails is an empty string - Integration	|
+|	     	| 	[REGULAR](status: 400) if the group contains only one member before deleting any user - Integration	|
+|	     	| 	(status: 401) called by an authenticated user who is not part of the group (authType = Group) - Integration	|
+|	     	| 	(status: 401) called by an authenticated user who is not part of the group (authType = Admin) - Integration	|
+|	FR28 (deleteGroup)	| 	should return status 200 for successful deletion - Unit	|
+|	     	| 	should return status 400 for body without necessary attributes - Unit	|
+|	     	| 	should return status 400 empty string name in the body - Unit	|
+|	     	| 	should return status 400 for a group that is not in the database - Unit	|
+|	     	| 	should return status 401 when called by a user that is not an admin - Unit	|
+|	     	| 	should return status 200 for a sequence of deletion - Integration	|
+|	     	| 	should return status 400 for a call with wrong body property - Integration	|
+|	     	| 	should return status 400 for a call with empty stirng body(with spaces) - Integration	|
+|	     	| 	should return status 400 for a call with body that does not represent a group in db - Integration	|
+|	     	| 	should return status 401 for non admin call - Integration	|
 |	FR31 (createTransaction)	| 	Should return status code 200 - Unit	|
 |	     	| 	Should return status code 400, missing parameters - Unit	|
 |	     	| 	Should return status code 400, empty string - Unit	|
@@ -600,112 +664,48 @@ Coverage |
 |	     	| 	Should return status code 400, empty string in ids - Integration	|
 |	     	| 	Should return status code 400, transaction not in the db - Integration	|
 |	     	| 	Should return status code 401, user is not an admin - Integration	|
-|	FR15 (getUsers)	| 	(status 200) should return empty list if there are no users - Unit	|
-|	     	| 	(status 200) should retrieve list of all users - Unit	|
-|	     	| 	[ADMIN](status: 200) should retrieve list of the only one user - Integration	|
-|	     	| 	[ADMIN](status: 200) no user in the system, returned empty list - Integration	|
-|	     	| 	[ADMIN](status: 200) should retrieve list of all users - Integration	|
-|	     	| 	[REGULAR](status: 401) authError if im authenticated as regular user - Integration	|
-|	FR21 (createGroup)	| 	should return status code 200 - Unit	|
-|	     	| 	should return status code 400 for incomplete body req - Unit	|
-|	     	| 	should return status code 400 for empty name in req - Unit	|
-|	     	| 	should return status code 400 for existing group - Unit	|
-|	     	| 	should return status code 400 for existing group - Unit	|
-|	     	| 	should return status code 400 if the caller is in a group - Unit	|
-|	     	| 	should return status code 400 for email invalid format - Unit	|
-|	     	| 	should return status code 400 for empty email string - Unit	|
-|	     	| 	should return status code 400 for duplicated memeber emails - Unit	|
-|	     	| 	should return status code 401 for unauthenticated user - Unit	|
-|	     	| 	status 200 and data object correctly computed - Integration	|
-|	     	| 	status 400 for incorrect body - Integration	|
-|	     	| 	status 400 for empty group name - Integration	|
-|	     	| 	status 400 for already present group - Integration	|
-|	     	| 	status 400 for already used/do not exist emails in a group - Integration	|
-|	     	| 	status 400 for invalid email format - Integration	|
-|	     	| 	status 400 for empty member emails with and without blank spaces - Integration	|
-|	     	| 	status 401 for unauthenticated user - Integration	|
-|	FR16 (getUser)	| 	(status 200) should retrieve another user if i have auth - Unit	|
-|	     	| 	(status 400) user not found, should retreive an error - Unit	|
-|	     	| 	(status 401) no auth - Unit	|
-|	     	| 	[ADMIN](status: 200) should retrieve himself - Integration	|
-|	     	| 	[ADMIN](status: 200) should retrieve another user - Integration	|
-|	     	| 	[REGULAR](status: 200) should retrieve himself - Integration	|
-|	     	| 	[REGULAR](status: 401) should not retrieve other user - Integration	|
-|	     	| 	[ADMIN](status: 400) user not found - Integration	|
-|	FR22 (getGroups)	| 	should return status 200 - Unit	|
-|	     	| 	should return status 401 for call by a unauthorized user - Unit	|
-|	     	| 	should return status 200 for a call by auth admin - Integration	|
-|	     	| 	should return status 401 for a call by non admin user - Integration	|
-|	FR23 (getGroup)	| 	(status 200) should return all the group information - Unit	|
-|	     	| 	(400) group not in the database - Unit	|
-|	     	| 	(401) group doesnt have auth  - Unit	|
-|	     	| 	[REGULAR](status: 200) should retrieve group of given user in it - Integration	|
-|	     	| 	[REGULAR](status: 401) should retrieve error cause im not in the group - Integration	|
-|	     	| 	[ADMIN](status: 200) should retrieve group where im not in - Integration	|
-|	     	| 	[ADMIN](status: 400) should retrieve error if group doesnt exist - Integration	|
-|	     	| 	[REGUALAR](status: 400) should retrieve error if group doesnt exist - Integration	|
-|	FR24 (addToGroup)	| 	(status 200)[REGULAR] should return all added user - Unit	|
-|	     	| 	(400) request body does not contain all the necessary attributes - Unit	|
-|	     	| 	(400) group name passed as a route parameter does not represent a group in the database - Unit	|
-|	     	| 	(400) if all the provided emails represent users that are already in a group - Unit	|
-|	     	| 	(400) if all the provided emails represent users that do not exist in the database - Unit	|
-|	     	| 	(400) at least one of the member emails is an empty string - Unit	|
-|	     	| 	(401) if called by an authenticated user who is not part of the group (authType = Group) - Unit	|
-|	     	| 	(401) if called by an authenticated user who is not an admin (authType = Admin) - Unit	|
-|	     	| 	[REGULAR](status: 200) should retrieve group of given user in it - Integration	|
-|	     	| 	[ADMIN](status: 200) should retrieve group of given user not in it - Integration	|
-|	     	| 	[REGULAR](status: 400) the request body does not contain all the necessary attributes - Integration	|
-|	     	| 	[REGULAR](status: 400) the group name passed as a route parameter does not represent a group in the database - Integration	|
-|	     	| 	[REGULAR](status: 400) all the provided emails represent users that are already in a group  - Integration	|
-|	     	| 	[REGULAR](status: 400) all the provided emails represent users do not exist in the database  - Integration	|
-|	     	| 	[REGULAR](status: 400) at least one of the member emails is not in a valid email format  - Integration	|
-|	     	| 	[REGULAR](status: 400) at least one of the member emails is an empty string  - Integration	|
-|	     	| 	[REGULAR](status: 401) called by an authenticated user who is not part of the group (authType = Group) - Integration	|
-|	     	| 	[REGULAR](status: 401) called by an authenticated user who is not part of the group (authType = Admin) - Integration	|
-|	FR26 (removeFromGroup)	| 	(status 200)[REGULAR] should return group without removed users - Unit	|
-|	     	| 	(status 200)[ADMIN] should return group without removed users - Unit	|
-|	     	| 	(400) request body does not contain all the necessary attributes - Unit	|
-|	     	| 	(400) group name passed as a route parameter does not represent a group in the database - Unit	|
-|	     	| 	(400) all the provided emails represent users that do not exist in the database - Unit	|
-|	     	| 	(400) at least one of the emails is not in a valid email format - Unit	|
-|	     	| 	(400) at least one of the emails is an empty string - Unit	|
-|	     	| 	(400) the group contains only one member before deleting any user - Unit	|
-|	     	| 	(401) called by an authenticated user who is not part of the group (authType = Group) - Unit	|
-|	     	| 	(401) called by an authenticated user who is not admin (authType = Admin) - Unit	|
-|	     	| 	[REGULAR](status: 200) should retrieve group of given user in it - Integration	|
-|	     	| 	[ADMIN](status: 200) should retrieve group of given user not in it - Integration	|
-|	     	| 	[REGULAR](status: 400) the request body does not contain all the necessary attributes - Integration	|
-|	     	| 	[REGULAR](status: 400) the group name passed as a route parameter does not represent a group in the database - Integration	|
-|	     	| 	[REGULAR](status: 400) all the provided emails represent users that do not belong to the group - Integration	|
-|	     	| 	[REGULAR](status: 400) all the provided emails represent users do not exist in the database  - Integration	|
-|	     	| 	[REGULAR](status: 400) at least one of the member emails is not in a valid email format  - Integration	|
-|	     	| 	[REGULAR](status: 400) at least one of the member emails is an empty string - Integration	|
-|	     	| 	[REGULAR](status: 400) if the group contains only one member before deleting any user - Integration	|
-|	     	| 	(status: 401) called by an authenticated user who is not part of the group (authType = Group) - Integration	|
-|	     	| 	(status: 401) called by an authenticated user who is not part of the group (authType = Admin) - Integration	|
-|	FR17 (deleteUser)	| 	(status: 200) deletion of user and its group and transactions - Unit	|
-|	     	| 	should return status 400 for body without necessary attributes - Unit	|
-|	     	| 	Returns a 400 error if the email passed in the request body is an empty string - Unit	|
-|	     	| 	Returns a 400 error if the email passed in the request body is not in correct email format - Unit	|
-|	     	| 	Returns a 401 error if called by an authenticated user who is not an admin (authType = Admin) - Unit	|
-|	     	| 	(status 200) should delete one user (no transaction, no group)  - Integration	|
-|	     	| 	(status 200) should delete one user and group - Integration	|
-|	     	| 	(status 200) should delete one user with one transaction - Integration	|
-|	     	| 	should return status 400 for a call with wrong body property - Integration	|
-|	     	| 	Returns a 400 error if the email passed in the request body is an empty string - Integration	|
-|	     	| 	Returns a 400 error if the email passed in the request body is not in correct email format - Integration	|
-|	     	| 	Returns a 400 error if the email passed in the request body does not represent a user in the database [called by admin] - Integration	|
-|	     	| 	Returns a 400 error if the email passed in the request body does not represent a user in the database [called by user] - Integration	|
-|	FR28 (deleteGroup)	| 	should return status 200 for successful deletion - Unit	|
-|	     	| 	should return status 400 for body without necessary attributes - Unit	|
-|	     	| 	should return status 400 empty string name in the body - Unit	|
-|	     	| 	should return status 400 for a group that is not in the database - Unit	|
-|	     	| 	should return status 401 when called by a user that is not an admin - Unit	|
-|	     	| 	should return status 200 for a sequence of deletion - Integration	|
-|	     	| 	should return status 400 for a call with wrong body property - Integration	|
-|	     	| 	should return status 400 for a call with empty stirng body(with spaces) - Integration	|
-|	     	| 	should return status 400 for a call with body that does not represent a group in db - Integration	|
-|	     	| 	should return status 401 for non admin call - Integration	|
+|	FR41 (createCategory)	| 	Should return status code 200 - Unit	|
+|	     	| 	Should return status code 400, missing parameters - Unit	|
+|	     	| 	Should return status code 400, a parameter has an empty string - Unit	|
+|	     	| 	Should return status code 400, already existing category - Unit	|
+|	     	| 	Should return status code 401, the user is not an admin - Unit	|
+|	     	| 	Should return status code 200 - Integration	|
+|	     	| 	Should return status code 400, missing parameters - Integration	|
+|	     	| 	Should return status code 400, parametes has an empty string - Integration	|
+|	     	| 	Should return status code 400, already existing category - Integration	|
+|	     	| 	Should return status code 401, the user is not an admin - Integration	|
+|	FR42 (updateCategory)	| 	Should return status code 200 - Unit	|
+|	     	| 	Should return status code 400: request body does not contain all the necessary attributes - Unit	|
+|	     	| 	Should return status code 400: at least one of the parameters in the request body is an empty string - Unit	|
+|	     	| 	Should return status code 400: the type of category passed as a route parameter does not represent a category in the database - Unit	|
+|	     	| 	Should return status code 400: the type of category passed in the request body as the new type represents an already existing category in the database and that category is not the same as the requested one - Unit	|
+|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Unit	|
+|	     	| 	Should return 200 and update the category - Integration	|
+|	     	| 	Should return status code 400: request body does not contain all the necessary attributes - Integration	|
+|	     	| 	Should return status code 400: at least one of the parameters in the request body is an empty string - Integration	|
+|	     	| 	Should return status code 400: the type of category passed as a route parameter does not represent a category in the database - Integration	|
+|	     	| 	Should return status code 400: the type of category passed in the request body as the new type represents an already existing category in the database and that category is not the same as the requested one - Integration	|
+|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Integration	|
+|	FR43 (deleteCategory)	| 	Should return status code 200 - Unit	|
+|	     	| 	Should return status code 200 having categories in the database equal to the categories to be deleted - Unit	|
+|	     	| 	Should return status code 400: the request body does not contain all the necessary attributes - Unit	|
+|	     	| 	Should return status code 400: there is only one category in the database - Unit	|
+|	     	| 	Should return status code 400: at least one of the types in the array is an empty string - Unit	|
+|	     	| 	Should return status code 400: the array passed in the request body is empty - Unit	|
+|	     	| 	Should return status code 400: at least one of the types in the array does not represent a category in the database - Unit	|
+|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Unit	|
+|	     	| 	Should return 200 and delete the category - Integration	|
+|	     	| 	Should return 200 and delete all the categories mantaining the oldest one - Integration	|
+|	     	| 	Should return status code 400: the request body does not contain all the necessary attributes - Integration	|
+|	     	| 	Should return status code 400: there is only one category in the database - Integration	|
+|	     	| 	Should return status code 400: at least one of the types in the array is an empty string - Integration	|
+|	     	| 	Should return status code 400: the array passed in the request body is empty - Integration	|
+|	     	| 	Should return status code 400: at least one of the types in the array does not represent a category in the database - Integration	|
+|	     	| 	Should return status code 401: called by an authenticated user who is not an admin (authType = Admin) - Integration	|
+|	FR44 (getCategories)	| 	return status 200 and correct data - Unit	|
+|	     	| 	return status 200 and empty data with empty db - Unit	|
+|	     	| 	return status 401 for not admin call - Unit	|
+|	     	| 	status 200 and correct retrieved categories - Integration	|
 
 
 
