@@ -395,33 +395,6 @@ describe("getUser", () => {
     })
   })
 
-  // Problema dato il check dell'autorizzazione prima del check dell'esistenza dell'utente, quindi non riesco mai a testare questo errore per regular
-  // test("[REGULAR](status: 400) user not found", (done) => {
-  //   User.create({
-  //     username: "tester",
-  //     email: "test@test.com",
-  //     password: "tester",
-  //     role: "Regular"
-  //   }).then(() => {
-  //     request(app)
-  //       .get("/api/users/fjdksjao")
-  //       .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
-  //       .then((response) => {
-          
-  //         expect(response.status).toBe(400)
-
-  //         //Controlli sulla dimensione della risposta (può aspettare sia il refresh token che no)
-  //         expect(Object.keys(response.body).length).toBeGreaterThan(0)
-  //         expect(Object.keys(response.body).length).toBeLessThan(3)         
-  //         expect(response.body).toHaveProperty("error")
-          
-          
-  //         done() // Notify Jest that the test is complete
-  //       })
-  //       .catch((err) => done(err))
-  //   })
-  // })
-
   test("[ADMIN](status: 400) user not found", (done) => {
     User.create({
       username: "administratortest",
@@ -1770,7 +1743,7 @@ describe("removeFromGroup", () => {
   
   })
 
-  describe("deleteUser", () => { 
+describe("deleteUser", () => { 
 
     test("(status 200) should delete one user (no transaction, no group) ", async () => {
             
