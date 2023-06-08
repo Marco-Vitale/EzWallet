@@ -430,7 +430,7 @@ export const deleteUser = async (req, res) => {
     if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
 
     const email = req.body.email;
-    if (!email || email.trim() === "") res.status(400).json({error: "The body doesn't contain the necessary attributes."});
+    if (!email || email.trim() === "") return res.status(400).json({error: "The body doesn't contain the necessary attributes."});
     if(!verifyEmail(email)) return res.status(400).json({error: `${email} has an incorrect email format, it is empty or not valid.`});
 
     const userData = await User.findOne({email: email});
@@ -462,7 +462,7 @@ export const deleteUser = async (req, res) => {
     // remove the user
     const removeUser = await User.remove({username: userData.username, email: userData.email});
 
-    res.status(200).json({
+    return res.status(200).json({
       data: {
         deletedTransactions: numberOfTransactions.deletedCount,
         deletedFromGroup: groupFlag
