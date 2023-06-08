@@ -93,7 +93,7 @@ export const updateCategory = async (req, res) => {
   - all the transactions that have a category that is deleted must have their category changed to the first category type rather than to the default category. Transactions with a category that does not exist are not fetched by the aggregate method, which performs a join operation.
  */
 export const deleteCategory = async (req, res) => {
-    //try {
+    try {
         const cookie = req.cookies
         if (!cookie.accessToken) {
             return res.status(401).json({ error: "Unauthorized" }); // unauthorized
@@ -135,9 +135,9 @@ export const deleteCategory = async (req, res) => {
             res.status(401).json({ error: adminAuth.cause});
         }
 
-    /*} catch (error) {
+    } catch (error) {
         res.status(500).json({error: error.message})   
-    }*/
+    }
 }
 
 
@@ -233,7 +233,7 @@ export const getAllTransactions = async (req, res) => {
         }
         
         const adminAuth = verifyAuth(req, res, { authType: "Admin" })
-        if (!adminAuth.authorized) res.status(401).json({error: adminAuth.cause});
+        if (!adminAuth.authorized) return res.status(401).json({error: adminAuth.cause});
 
         /**
          * MongoDB equivalent to the query "SELECT * FROM transactions, categories WHERE transactions.type = categories.type"
@@ -731,7 +731,7 @@ export const deleteTransactions = async (req, res) => {
         ids.forEach((id) => {
             transactions.deleteOne({ _id: id })
               .then(() => {
-                console.log(`Transaction with ID ${id} deleted successfully.`);
+                //console.log(`Transaction with ID ${id} deleted successfully.`);
               })
               .catch((err) => {
                 console.error(`Failed to delete transaction with ID ${id}:`, err);
