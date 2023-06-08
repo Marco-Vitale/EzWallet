@@ -201,10 +201,10 @@ describe("updateCategory", () => {
         })
 
         const alreadyExists = undefined;
-        categories.findOne.mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValueOnce(alreadyExists)
 
         const oldCategory = {type: "oldCategory", color: "red"}
-        categories.find.mockResolvedValue(oldCategory)
+        categories.find.mockResolvedValueOnce(oldCategory)
 
         const updateOneResult = {
             "acknowledged" : true,
@@ -212,10 +212,10 @@ describe("updateCategory", () => {
             "modifiedCount" : 0,
             "upsertedId" : "aaa"
         }
-        categories.updateOne.mockResolvedValue(updateOneResult)
+        categories.updateOne.mockResolvedValueOnce(updateOneResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValueOnce(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
 
@@ -244,21 +244,7 @@ describe("updateCategory", () => {
         })
 
         const alreadyExists = undefined;
-        categories.findOne.mockResolvedValue(alreadyExists)
-
-        const oldCategory = {type: "oldCategory", color: "red"}
-        categories.find.mockResolvedValue(oldCategory)
-
-        const updateOneResult = {
-            "acknowledged" : true,
-            "matchedCount" : 0,
-            "modifiedCount" : 0,
-            "upsertedId" : "aaa"
-        }
-        categories.updateOne.mockResolvedValue(updateOneResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
+        categories.findOne.mockResolvedValueOnce(alreadyExists)
 
         await updateCategory(mockReq, mockRes)
 
@@ -288,21 +274,7 @@ describe("updateCategory", () => {
         })
 
         const alreadyExists = undefined;
-        categories.findOne.mockResolvedValue(alreadyExists)
-
-        const oldCategory = {type: "oldCategory", color: "red"}
-        categories.find.mockResolvedValue(oldCategory)
-
-        const updateOneResult = {
-            "acknowledged" : true,
-            "matchedCount" : 0,
-            "modifiedCount" : 0,
-            "upsertedId" : "aaa"
-        }
-        categories.updateOne.mockResolvedValue(updateOneResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
+        categories.findOne.mockResolvedValueOnce(alreadyExists)
 
         await updateCategory(mockReq, mockRes)
 
@@ -332,21 +304,10 @@ describe("updateCategory", () => {
         })
 
         const alreadyExists = undefined;
-        categories.findOne.mockResolvedValue(alreadyExists)
+        categories.findOne.mockResolvedValueOnce(alreadyExists)
 
         const oldCategory = undefined;
-        categories.find.mockResolvedValue(oldCategory)
-
-        const updateOneResult = {
-            "acknowledged" : true,
-            "matchedCount" : 0,
-            "modifiedCount" : 0,
-            "upsertedId" : "aaa"
-        }
-        categories.updateOne.mockResolvedValue(updateOneResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
+        categories.find.mockResolvedValueOnce(oldCategory)
 
         await updateCategory(mockReq, mockRes)
 
@@ -376,21 +337,7 @@ describe("updateCategory", () => {
         })
 
         const alreadyExists = {type: "oldCategory", color: "red"};
-        categories.findOne.mockResolvedValue(alreadyExists)
-
-        const oldCategory = {type: "oldCategory", color: "red"}
-        categories.find.mockResolvedValue(oldCategory)
-
-        const updateOneResult = {
-            "acknowledged" : true,
-            "matchedCount" : 0,
-            "modifiedCount" : 0,
-            "upsertedId" : "aaa"
-        }
-        categories.updateOne.mockResolvedValue(updateOneResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
+        categories.findOne.mockResolvedValueOnce(alreadyExists)
 
         await updateCategory(mockReq, mockRes)
 
@@ -418,23 +365,6 @@ describe("updateCategory", () => {
         verifyAuth.mockImplementation(() => {
             return { authorized: false, cause: "Requested auth for a different role" }
         })
-
-        const alreadyExists = {type: "oldCategory", color: "red"};
-        categories.findOne.mockResolvedValue(alreadyExists)
-
-        const oldCategory = {type: "oldCategory", color: "red"}
-        categories.find.mockResolvedValue(oldCategory)
-
-        const updateOneResult = {
-            "acknowledged" : true,
-            "matchedCount" : 0,
-            "modifiedCount" : 0,
-            "upsertedId" : "aaa"
-        }
-        categories.updateOne.mockResolvedValue(updateOneResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await updateCategory(mockReq, mockRes)
         
@@ -477,14 +407,14 @@ describe("deleteCategory", () => {
                         })
                         .mockResolvedValueOnce(foundCategories)
                         .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
+                            sort: jest.fn().mockResolvedValueOnce(listOfCategories),
                         })
 
         const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        categories.deleteMany.mockResolvedValue(deleteManyResult)
+        categories.deleteMany.mockResolvedValueOnce(deleteManyResult)
 
         const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
+        categories.updateMany.mockResolvedValueOnce(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
 
@@ -512,21 +442,6 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        categories.find.mockResolvedValueOnce(listOfCategories)
-                        .mockReturnValueOnce({
-                            sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })
-                        .mockResolvedValueOnce(foundCategories)
-                        .mockReturnValueOnce({
-                            sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })
-
-        const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        categories.deleteMany.mockResolvedValue(deleteManyResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
-
         await deleteCategory(mockReq, mockRes)
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
@@ -537,7 +452,7 @@ describe("deleteCategory", () => {
 
     test("Should return status code 400: there is only one category in the database", async() => {
         const mockReq = {
-            body: { color: ["red"] },
+            body: { types: ["category1", "category2"] },
             cookies: { accessToken:exampleAdminAccToken, refreshToken:exampleAdminRefToken }
         }
         const mockRes = {
@@ -553,12 +468,6 @@ describe("deleteCategory", () => {
         })
 
         categories.find.mockResolvedValueOnce([{type: "category1", color: "red"}])
-
-        const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        categories.deleteMany.mockResolvedValue(deleteManyResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
 
@@ -587,21 +496,6 @@ describe("deleteCategory", () => {
             return { authorized: true, cause: "Authorized" }
         })
 
-        categories.find.mockResolvedValueOnce(listOfCategories)
-                        .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })
-                        .mockResolvedValueOnce(foundCategories)
-                        .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })
-
-        const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        categories.deleteMany.mockResolvedValue(deleteManyResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
-
         await deleteCategory(mockReq, mockRes)
 
         expect(mockRes.status).toHaveBeenCalledWith(400)
@@ -628,21 +522,6 @@ describe("deleteCategory", () => {
         verifyAuth.mockImplementation(() => {
             return { authorized: true, cause: "Authorized" }
         })
-
-        categories.find.mockResolvedValueOnce(listOfCategories)
-                        .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories)
-                        })
-                        .mockResolvedValueOnce(foundCategories)
-                        .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories)
-                        })
-
-        const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        categories.deleteMany.mockResolvedValue(deleteManyResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
 
@@ -676,15 +555,6 @@ describe("deleteCategory", () => {
                         sort: jest.fn().mockResolvedValueOnce(listOfCategories),
                         })
                         .mockResolvedValueOnce(foundCategories)
-                        .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })
-
-        const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        categories.deleteMany.mockResolvedValue(deleteManyResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        categories.updateMany.mockResolvedValue(updateManyResult)
 
         await deleteCategory(mockReq, mockRes)
 
@@ -713,21 +583,6 @@ describe("deleteCategory", () => {
             return { authorized: false, cause: "Requested auth for a different role" }
         })
 
-        /*categories.find.mockResolvedValueOnce(listOfCategories)
-                        .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })
-                        .mockResolvedValueOnce(foundCategories)
-                        .mockReturnValueOnce({
-                        sort: jest.fn().mockResolvedValueOnce(listOfCategories),
-                        })*/
-
-        const deleteManyResult = { "acknowledged" : true, "deletedCount" : 2 }
-        //categories.deleteMany.mockResolvedValue(deleteManyResult)
-
-        const updateManyResult = { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
-        //categories.updateMany.mockResolvedValue(updateManyResult)
-
         await deleteCategory(mockReq, mockRes)
 
         expect(mockRes.status).toHaveBeenCalledWith(401)
@@ -755,12 +610,15 @@ describe("getCategories", () => {
             return { authorized: true, cause: "authorized" }
         });
         const data = [{type: "food", color: "red"}, {type: "health", color: "green"}];
-        jest.spyOn(categories, "find").mockResolvedValue(data);
+        jest.spyOn(categories, "find").mockResolvedValueOnce(data);
 
         await getCategories(mockReq, mockRes);
         expect(mockRes.status).toHaveBeenCalledWith(200);
-        expect(mockRes.json).toHaveBeenCalledWith({data: [{type: "food", color: "red"}, 
-        {type: "health", color: "green"}], 
+        expect(mockRes.json).toHaveBeenCalledWith(
+            {data: [
+                {type: "food", color: "red"}, 
+                {type: "health", color: "green"}
+            ], 
         refreshedTokenMessage: "expired token"})
 
 
@@ -783,7 +641,7 @@ describe("getCategories", () => {
             return { authorized: true, cause: "authorized" }
         });
         const data = [];
-        jest.spyOn(categories, "find").mockResolvedValue(data);
+        jest.spyOn(categories, "find").mockResolvedValueOnce(data);
 
         await getCategories(mockReq, mockRes);
         expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -810,7 +668,7 @@ describe("getCategories", () => {
             return { authorized: false, cause: "Unauthorized" }
         });
         const data = [{type: "food", color: "red"}, {type: "health", color: "green"}];
-        jest.spyOn(categories, "find").mockResolvedValue(data);
+        jest.spyOn(categories, "find").mockResolvedValueOnce(data);
 
         await getCategories(mockReq, mockRes);
         expect(mockRes.status).toHaveBeenCalledWith(401);
