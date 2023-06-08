@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken'
     - empty array is returned if there are no users
  */
 export const getUsers = async (req, res) => {
-  try {
+ try {
     const adminAuth = verifyAuth(req, res, { authType: "Admin" })
     if (adminAuth.authorized) {
       const users = (await User.find()).map(user => ({username: user.username, email: user.email, role: user.role}));

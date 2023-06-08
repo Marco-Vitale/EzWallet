@@ -89,8 +89,8 @@ describe("getUsers", () => {
   password: administratorpassword
   mail: administrator@test.com
   */
-  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
-  const exampleAdminAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
+  const exampleTestAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTcxNzg0MjExMX0.8pm_G5vifJF0fgEMdCuNaGBQPZKzhtp3eIhMlzOlkxI";
+  const exampleTestAdminAccToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTcxNzg0MjExMX0.8pm_G5vifJF0fgEMdCuNaGBQPZKzhtp3eIhMlzOlkxI";
 
   /* [REGULAR]
   {
@@ -100,8 +100,8 @@ describe("getUsers", () => {
 }
   */
   
-  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MjgyOTksImV4cCI6MTY4NjIzMzA5OX0.WVpquYNQ9w1WwzP395o57d8-GNqcNJoU6lVawB4N5m8";
-  const exampleUserAccToken= exampleUserRefToken;
+  const exampleTestUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MjgyOTksImV4cCI6MTY4NjIzMzA5OX0.WVpquYNQ9w1WwzP395o57d8-GNqcNJoU6lVawB4N5m8";
+  const exampleTestUserAccToken= exampleTestUserRefToken;
  
 
   test("[ADMIN](status: 200) should retrieve list of the only one user", (done) => {
@@ -113,7 +113,7 @@ describe("getUsers", () => {
     }).then(() => {
       request(app)
         .get("/api/users")
-        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestAdminAccToken};refreshToken=${exampleTestAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
 
@@ -143,7 +143,7 @@ describe("getUsers", () => {
     
         request(app)
         .get("/api/users")
-        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestAdminAccToken};refreshToken=${exampleTestAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
 
@@ -174,7 +174,7 @@ describe("getUsers", () => {
     ).then(() => {
       request(app)
         .get("/api/users")
-        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestAdminRefToken};refreshToken=${exampleTestAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
           
@@ -212,7 +212,7 @@ describe("getUsers", () => {
     }).then(() => {
       request(app)
         .get("/api/users")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .then((response) => {
           expect(response.status).toBe(401)
           expect(Object.keys(response.body)).toHaveLength(1)
@@ -239,8 +239,8 @@ describe("getUser", () => {
   password: administratorpassword
   mail: administrator@test.com
   */
-  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
-  const exampleAdminAccToken=exampleAdminRefToken;
+  const exampleTestAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTcxNzg0MjExMX0.8pm_G5vifJF0fgEMdCuNaGBQPZKzhtp3eIhMlzOlkxI";
+  const exampleTestAdminAccToken=exampleTestAdminRefToken;
 
   /* [REGULAR]
   {
@@ -250,8 +250,8 @@ describe("getUser", () => {
 }
   */
   
-  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTY4NjIzNTkyMn0.XhUwuKINOEQHtYE1hOCPv-a5TR_NIB4l-R9AdRnL024";
-  const exampleUserAccToken= exampleUserRefToken;
+  const exampleTestUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTcxNzg0MjExMX0.udLQnmmGpEyRBKBN4xh6OY1PGmdoZF7QKSBP_YWSU5c";
+  const exampleTestUserAccToken= exampleTestUserRefToken;
   test("[ADMIN](status: 200) should retrieve himself", (done) => {
     User.create({
       username: "administratortest",
@@ -261,7 +261,7 @@ describe("getUser", () => {
     }).then(() => {
       request(app)
         .get("/api/users/administratortest")
-        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestAdminRefToken};refreshToken=${exampleTestAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
 
@@ -300,7 +300,7 @@ describe("getUser", () => {
     }).then(() => {
       request(app)
         .get("/api/users/tester")
-        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestAdminRefToken};refreshToken=${exampleTestAdminRefToken}`)
         .then((response) => {
           expect(response.status).toBe(200)
 
@@ -337,7 +337,7 @@ describe("getUser", () => {
       .then(() => {
       request(app)
         .get("/api/users/tester")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .then((response) => {
           
           expect(response.status).toBe(200)
@@ -378,7 +378,7 @@ describe("getUser", () => {
     .then(() => {
       request(app)
         .get("/api/users/Luigi")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .then((response) => {
           
           expect(response.status).toBe(401)
@@ -431,7 +431,7 @@ describe("getUser", () => {
     }).then(() => {
       request(app)
         .get("/api/users/ecci")
-        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestAdminRefToken};refreshToken=${exampleTestAdminRefToken}`)
         .then((response) => {
           
           expect(response.status).toBe(400)
@@ -841,7 +841,7 @@ describe("getGroup", () => {
   password: administratorpassword
   mail: administrator@test.com
   */
-  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
+  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTcxNzg0MjExMX0.8pm_G5vifJF0fgEMdCuNaGBQPZKzhtp3eIhMlzOlkxI";
   const exampleAdminAccToken=exampleAdminRefToken;
 
   /* [REGULAR]
@@ -852,7 +852,7 @@ describe("getGroup", () => {
 }
   */
   
-  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTY4NjIzNTkyMn0.XhUwuKINOEQHtYE1hOCPv-a5TR_NIB4l-R9AdRnL024";
+  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTcxNzg0MjExMX0.udLQnmmGpEyRBKBN4xh6OY1PGmdoZF7QKSBP_YWSU5c";
   const exampleUserAccToken= exampleUserRefToken;
   test("[REGULAR](status: 200) should retrieve group of given user in it", (done) => {
     
@@ -1074,8 +1074,8 @@ username: administratortest
 password: administratorpassword
 mail: administrator@test.com
 */
-const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
-const exampleAdminAccToken=exampleAdminRefToken;
+const exampleTestAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTcxNzg0MjExMX0.8pm_G5vifJF0fgEMdCuNaGBQPZKzhtp3eIhMlzOlkxI";
+const exampleTestAdminAccToken=exampleTestAdminRefToken;
 
 /* [REGULAR]
 {
@@ -1085,8 +1085,8 @@ const exampleAdminAccToken=exampleAdminRefToken;
 }
 */
 
-const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTY4NjIzNTkyMn0.XhUwuKINOEQHtYE1hOCPv-a5TR_NIB4l-R9AdRnL024";
-const exampleUserAccToken= exampleUserRefToken;
+const exampleTestUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTcxNzg0MjExMX0.udLQnmmGpEyRBKBN4xh6OY1PGmdoZF7QKSBP_YWSU5c";
+const exampleTestUserAccToken= exampleTestUserRefToken;
 
 test("[REGULAR](status: 200) should retrieve group of given user in it", (done) => {
   
@@ -1097,7 +1097,7 @@ test("[REGULAR](status: 200) should retrieve group of given user in it", (done) 
   ).then((gr) => {
     request(app)
       .patch("/api/groups/"+gr.name+"/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({emails: ["federico@email.com","administrator@test.com"]})
       .then((response) => {
         
@@ -1143,7 +1143,7 @@ test("[ADMIN](status: 200) should retrieve group of given user not in it", (done
   ).then((gr) => {
     request(app)
       .patch("/api/groups/"+gr.name+"/insert")
-      .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestAdminAccToken};refreshToken=${exampleTestAdminRefToken}`)
       .send({emails: ["federico@email.com","administrator@test.com"]})
       .then((response) => {
        
@@ -1189,7 +1189,7 @@ test("[REGULAR](status: 400) the request body does not contain all the necessary
   ).then((gr) => {
     request(app)
       .patch("/api/groups/"+gr.name+"/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({})
       .then((response) => {
        
@@ -1215,7 +1215,7 @@ test("[REGULAR](status: 400) the request body does not contain all the necessary
   ).then((gr) => {
     request(app)
       .patch("/api/groups/"+gr.name+"/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({})
       .then((response) => {
       
@@ -1239,7 +1239,7 @@ test("[REGULAR](status: 400) the group name passed as a route parameter does not
   ).then((gr) => {
     request(app)
       .patch("/api/groups/groupNotExist/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({emails: ["ivano@email.com"]})
       .then((response) => {
         
@@ -1263,7 +1263,7 @@ test("[REGULAR](status: 400) all the provided emails represent users that are al
   ).then((gr) => {
     request(app)
       .patch("/api/groups/testgroup/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({emails: ["tester@email.com","luigi.red@email.com"]})
       .then((response) => {
        
@@ -1287,7 +1287,7 @@ test("[REGULAR](status: 400) all the provided emails represent users do not exis
   ).then((gr) => {
     request(app)
       .patch("/api/groups/testgroup/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({emails: ["giorgio.red@email.com","gianluca.red@email.com","stefania.red@email.com"]})
       .then((response) => {
     
@@ -1311,7 +1311,7 @@ test("[REGULAR](status: 400) at least one of the member emails is not in a valid
   ).then((gr) => {
     request(app)
       .patch("/api/groups/testgroup/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({emails: ["gianluca.red","tester@alone.com"]})
       .then((response) => {
   
@@ -1335,7 +1335,7 @@ test("[REGULAR](status: 400) at least one of the member emails is an empty strin
   ).then((gr) => {
     request(app)
       .patch("/api/groups/testgroup/add")
-      .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
       .send({emails: ["","tester@alone.com"]})
       .then((response) => {
         
@@ -1351,7 +1351,7 @@ test("[REGULAR](status: 400) at least one of the member emails is an empty strin
 })
 test("[REGULAR](status: 401) called by an authenticated user who is not part of the group (authType = Group)", (done) => {
   
-  const exampleNewUserRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im9uZVRlc3RAdGVzdC5jb20iLCJpZCI6IjY0N2Q4NDc1NjJlMmVmODk1MzdlY2MzOCIsInVzZXJuYW1lIjoib25lVGVzdCIsInJvbGUiOiJSZWd1bGFyIiwiaWF0IjoxNjg1OTQ3NTIyLCJleHAiOjE2ODY1NTIzMjJ9.0dD5GNJNUjAQn9oidvLs1DWOmiGZQ-r5eMy5NoWHoqY"
+  const exampleNewUserRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im9uZVRlc3RAdGVzdC5jb20iLCJpZCI6IjY0N2Q4NDc1NjJlMmVmODk1MzdlY2MzOCIsInVzZXJuYW1lIjoib25lVGVzdCIsInJvbGUiOiJSZWd1bGFyIiwiaWF0IjoxNjg1OTQ3NTIyLCJleHAiOjE3MTc4NDIxMTF9.IxgaXN-M9-7RW0i7Ddvu1dV_4KkMNU4CfHtVcfyopmM"
   const exampleNewUserAccToken = exampleNewUserRefToken
   Group.create({
     name: "testgroup",
@@ -1473,8 +1473,8 @@ describe("removeFromGroup", () => {
   password: administratorpassword
   mail: administrator@test.com
   */
-  const exampleAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTY4NjIxMzgxMX0.GAlIbL2MjisoEjDE8kHJAjVkAzjUsJjYzmhj6lxi3Yo";
-  const exampleAdminAccToken=exampleAdminRefToken;
+  const exampleTestAdminRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluaXN0cmF0b3JAdGVzdC5jb20iLCJpZCI6IjY0Nzg1YTI1MzJhZDk2MGIwNWZhMmJlMiIsInVzZXJuYW1lIjoiYWRtaW5pc3RyYXRvcnRlc3QiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE2ODU2MDkwMTEsImV4cCI6MTcxNzg0MjExMX0.8pm_G5vifJF0fgEMdCuNaGBQPZKzhtp3eIhMlzOlkxI";
+  const exampleTestAdminAccToken=exampleTestAdminRefToken;
   
   /* [REGULAR]
   {
@@ -1484,8 +1484,8 @@ describe("removeFromGroup", () => {
   }
   */
   
-  const exampleUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTY4NjIzNTkyMn0.XhUwuKINOEQHtYE1hOCPv-a5TR_NIB4l-R9AdRnL024";
-  const exampleUserAccToken= exampleUserRefToken;
+  const exampleTestUserRefToken="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpZCI6IjY0NzhhNTg2MzdlZmM0YWZmMmVlNWVlMyIsInVzZXJuYW1lIjoidGVzdGVyIiwicm9sZSI6IlJlZ3VsYXIiLCJpYXQiOjE2ODU2MzExMjIsImV4cCI6MTcxNzg0MjExMX0.udLQnmmGpEyRBKBN4xh6OY1PGmdoZF7QKSBP_YWSU5c";
+  const exampleTestUserAccToken= exampleTestUserRefToken;
   
   test("[REGULAR](status: 200) should retrieve group of given user in it", (done) => {
     
@@ -1496,7 +1496,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/"+gr.name+"/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({emails: ["luigi.red@email.com","mario.red@email.com"]})
         .then((response) => {
           
@@ -1541,7 +1541,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/"+gr.name+"/pull")
-        .set("Cookie", `accessToken=${exampleAdminAccToken};refreshToken=${exampleAdminRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestAdminAccToken};refreshToken=${exampleTestAdminRefToken}`)
         .send({emails: ["luigi.red@email.com","mario.red@email.com"]})
         .then((response) => {
          
@@ -1584,7 +1584,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/"+gr.name+"/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({})
         .then((response) => {
         
@@ -1608,7 +1608,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/groupNotExist/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({})
         .then((response) => {
           
@@ -1632,7 +1632,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/testgroup/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({emails: ["federico@email.com"]})
         .then((response) => {
           expect(response.status).toBe(400)
@@ -1655,7 +1655,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/testgroup/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({emails: ["giorgio.green@email.com","gianluca.green@email.com","stefania.green@email.com"]})
         .then((response) => {
       
@@ -1679,7 +1679,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/testgroup/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({emails: ["gianluca.red","tester@test.com"]})
         .then((response) => {
     
@@ -1703,7 +1703,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/testgroup/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({emails: ["","tester@test.com"]})
         .then((response) => {
           
@@ -1728,7 +1728,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/testgroup/remove")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({emails: ["test@test.com"]})
         .then((response) => {
           
@@ -1745,7 +1745,7 @@ describe("removeFromGroup", () => {
 
   test("(status: 401) called by an authenticated user who is not part of the group (authType = Group)", (done) => {
     
-    const exampleNewUserRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im9uZVRlc3RAdGVzdC5jb20iLCJpZCI6IjY0N2Q4NDc1NjJlMmVmODk1MzdlY2MzOCIsInVzZXJuYW1lIjoib25lVGVzdCIsInJvbGUiOiJSZWd1bGFyIiwiaWF0IjoxNjg1OTQ3NTIyLCJleHAiOjE2ODY1NTIzMjJ9.0dD5GNJNUjAQn9oidvLs1DWOmiGZQ-r5eMy5NoWHoqY"
+    const exampleNewUserRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im9uZVRlc3RAdGVzdC5jb20iLCJpZCI6IjY0N2Q4NDc1NjJlMmVmODk1MzdlY2MzOCIsInVzZXJuYW1lIjoib25lVGVzdCIsInJvbGUiOiJSZWd1bGFyIiwiaWF0IjoxNjg1OTQ3NTIyLCJleHAiOjE3MTc4NDIxMTF9.IxgaXN-M9-7RW0i7Ddvu1dV_4KkMNU4CfHtVcfyopmM"
     const exampleNewUserAccToken = exampleNewUserRefToken
     Group.create({
       name: "testgroup",
@@ -1775,7 +1775,7 @@ describe("removeFromGroup", () => {
     ).then((gr) => {
       request(app)
         .patch("/api/groups/testgroup/pull")
-        .set("Cookie", `accessToken=${exampleUserAccToken};refreshToken=${exampleUserRefToken}`)
+        .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
         .send({emails: ["test@test.com"]})
         .then((response) => {
           
