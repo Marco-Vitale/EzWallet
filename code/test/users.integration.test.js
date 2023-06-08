@@ -1205,31 +1205,6 @@ test("[REGULAR](status: 400) the request body does not contain all the necessary
 })
 
 
-
-test("[REGULAR](status: 400) the request body does not contain all the necessary attributes", (done) => {
-  
-  
-  Group.create({
-    name: "testgroup",
-    members: members}
-  ).then((gr) => {
-    request(app)
-      .patch("/api/groups/"+gr.name+"/add")
-      .set("Cookie", `accessToken=${exampleTestUserAccToken};refreshToken=${exampleTestUserRefToken}`)
-      .send({})
-      .then((response) => {
-      
-        expect(response.status).toBe(400)
-        
-        expect(response.body).toHaveProperty("error")
-
-        
-        done() // Notify Jest that the test is complete
-      })
-      .catch((err) => done(err))
-  })
-})
-
 test("[REGULAR](status: 400) the group name passed as a route parameter does not represent a group in the database", (done) => {
   
   
@@ -1948,7 +1923,7 @@ describe("removeFromGroup", () => {
       expect(response.body).toHaveProperty("error");
     })
 
-    test("Returns a 400 error if the email passed in the request body does not represent a user in the database", async () => {
+    test("Returns a 400 error if the email passed in the request body does not represent a user in the database [called by admin]", async () => {
                     
       await User.create(
         {
@@ -1969,7 +1944,7 @@ describe("removeFromGroup", () => {
       expect(response.body).toHaveProperty("error");
     })
 
-    test("Returns a 400 error if the email passed in the request body does not represent a user in the database", async () => {
+    test("Returns a 400 error if the email passed in the request body does not represent a user in the database [called by user]", async () => {
                     
       await User.create(
         {
