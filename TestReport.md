@@ -35,7 +35,7 @@ We decided to divide our team in order to cover different functions from the one
 
 # Tests
 
-Decision set: { response 200, responses 400 }
+Decision set: { response 200, responses 400, responses 401 }
 
 | Test case name | Object(s) tested | Test level | Technique used |
 |--|--|--|--|
