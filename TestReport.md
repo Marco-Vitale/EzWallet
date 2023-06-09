@@ -22,7 +22,7 @@ The goal of this document is to explain how the application was tested, detailin
 ### Mixed approach:
 We decided to divide our team in order to cover different functions from the ones that each of us has implemented. Thus, we work in parallel on different unit and integration tests. 
 
-* Step #1: API testing
+* Step #1: API testing (informal testing)
 * Step #2 (parallel): unit tests valid input & invalid input
     * controller.js 
     * users.js
