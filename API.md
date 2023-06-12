@@ -309,8 +309,6 @@ The `registerAdmin` function does not require any check on whether the user call
   - Example: `{emails: ["pietro.blue@email.com"]}`
 - Response `data` Content: An object having an attribute `group` (this object must have a string attribute for the `name` of the created group and an array for the `members` of the group, this array must include only the remaining members), an array that lists the `notInGroup` members (members whose email is not in the group) and an array that lists the `membersNotFound` (members whose email does not appear in the system)
   - Example: `res.status(200).json({data: {group: {name: "Family", members: [{email: "mario.red@email.com"}, {email: "luigi.red@email.com"}]}, membersNotFound: [], notInGroup: []} refreshedTokenMessage: res.locals.refreshedTokenMessage})`
-- The group must have at least one user after deleting, so given M = members of the group and N = emails to delete:
-  - if N >= M at least one member of the group cannot be deleted (the member that remains can be any member, there is no rule on which one it must be)
 - In case any of the following errors apply then no user is removed from the group
 - Returns a 400 error if the request body does not contain all the necessary attributes
 - Returns a 400 error if the group name passed as a route parameter does not represent a group in the database
@@ -357,10 +355,10 @@ The `registerAdmin` function does not require any check on whether the user call
   - If the query parameters include `from` then it must include a `$gte` attribute that specifies the starting date as a `Date` object in the format **YYYY-MM-DDTHH:mm:ss**
     - Example: `/api/users/Mario/transactions?from=2023-04-30` => `{date: {$gte: 2023-04-30T00:00:00.000Z}}`
   - If the query parameters include `upTo` then it must include a `$lte` attribute that specifies the ending date as a `Date` object in the format **YYYY-MM-DDTHH:mm:ss**
-    - Example: `/api/users/Mario/transactions?upTo=2023-05-10` => `{date: {$lte: 2023-05-10T23:59:59.999Z}}`
+    - Example: `/api/users/Mario/transactions?upTo=2023-05-10` => `{date: {$lte: 2023-05-10T23:59:59.000Z}}`
   - If both `from` and `upTo` are present then both `$gte` and `$lte` must be included
   - If `date` is present then it must include both `$gte` and `$lte` attributes, these two attributes must specify the same date as a `Date` object in the format **YYYY-MM-DDTHH:mm:ss**
-    - Example: `/api/users/Mario/transactions?date=2023-05-10` => `{date: {$gte: 2023-05-10T00:00:00.000Z, $lte: 2023-05-10T23:59:59.999Z}}`
+    - Example: `/api/users/Mario/transactions?date=2023-05-10` => `{date: {$gte: 2023-05-10T00:00:00.000Z, $lte: 2023-05-10T23:59:59.000Z}}`
   - If there is no query parameter then it returns an empty object
     - Example: `/api/users/Mario/transactions` => `{}`
 - Throws an error if `date` is present in the query parameter together with at least one of `from` or `upTo`
@@ -382,6 +380,4 @@ The `registerAdmin` function does not require any check on whether the user call
   - If the query parameters include `min` then it must include a `$lte` attribute that is an integer equal to `max`
     - Example: `/api/users/Mario/transactions?min=50` => `{amount: {$lte: 50} }
   - If both `min` and `max` are present then both `$gte` and `$lte` must be included
-  - If neither is present then the function must return an empty object
-    - Example: `/api/users/Mario/transactions` => `{}`
 - Throws an error if the value of any of the two query parameters is not a numerical value
