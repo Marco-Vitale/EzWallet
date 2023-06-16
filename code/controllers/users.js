@@ -435,6 +435,7 @@ export const deleteUser = async (req, res) => {
 
     const userData = await User.findOne({email: email});
     if (!userData) return res.status(400).json({error: `The user ${email} doesn't exist.`});
+    if (userData.role === 'Admin') return res.status(400).json({error: `The user ${email} is an admin.`});
 
     // check if the user is the last member of the user
     let groupFlag = undefined;
@@ -450,9 +451,9 @@ export const deleteUser = async (req, res) => {
       } else {
         // remove the selected user from the group associated (if present)
         const groupAssociatedRemoved = await Group.updateOne(
-          { "members.email": userData.email }, 
-          { $pull: { members: { email: userData.email, user: userData._id} } }
-        );
+            { name: groupAssociated.name },
+            { $pull: { members: {email: userData.email, _id: userData._id} } }
+          );
       }
     }
 
