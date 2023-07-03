@@ -60,7 +60,7 @@ export const updateCategory = async (req, res) => {
                 return res.status(400).json({error: "Invalid input values"});
             }
             const exists = await categories.find({"type": oldType});
-            if(!exists){
+            if(!exists || exists.length == 0){
                 return res.status(400).json({error: "Category does not exist"});
             }
             const query = {"type" : oldType};
@@ -467,7 +467,7 @@ export const getTransactionsByGroup = async (req, res) => {
           
        
      
-        let userList = retrieveGroup.members.map((member) => member.user);
+        let userList = retrieveGroup.members.map((member) => member._id);
         
         const userArray = await User.find({ _id: { $in: userList} }, {_id: 0, username: 1})
         
@@ -562,7 +562,7 @@ export const getTransactionsByGroupByCategory = async (req, res) => {
         //Get user list form group
         
      
-        let userList = retrieveGroup.members.map((member) => member.user);
+        let userList = retrieveGroup.members.map((member) => member._id);
         
         //const userArray = await User.find({ _id: { $in: userList} }).select('username').lean();
  

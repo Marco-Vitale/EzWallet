@@ -16,14 +16,12 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         const req = { query: { date: "2023-06-04" } }
         const res = handleDateFilterParams(req)
 
-        expect(res).toHaveProperty("$and")
-        expect(res.$and[0]).toHaveProperty("date")
-        expect(res.$and[1]).toHaveProperty("date")
-        expect(res.$and.find(element => element.date.$gte).date).toHaveProperty("$gte")
-        expect(res.$and.find(element => element.date.$lte).date).toHaveProperty("$lte")
+        expect(res).toHaveProperty("date")
+        expect(res.date).toHaveProperty("$gte")
+        expect(res.date).toHaveProperty("$lte")
 
-        expect(res.$and.find(element => element.date.$gte).date.$gte.toISOString().slice(0, 19)).toEqual(req.query.date.slice(0, 10) + "T00:00:00")
-        expect(res.$and.find(element => element.date.$lte).date.$lte.toISOString().slice(0, 19)).toEqual(req.query.date.slice(0, 10) + "T23:59:59")
+        expect(res.date.$gte.toISOString().slice(0, 19)).toEqual(req.query.date.slice(0, 10) + "T00:00:00")
+        expect(res.date.$lte.toISOString().slice(0, 19)).toEqual(req.query.date.slice(0, 10) + "T23:59:59")
     });
 
     test("Returns an object with a property <date> passing <from> (only $gte property)", () => {
@@ -50,14 +48,12 @@ describe("handleDateFilterParams", () => { // TODO: check if $and can be a probl
         const req = { query: { from: "2023-01-03", upTo: "2023-01-05" } }
         const res = handleDateFilterParams(req)
 
-        expect(res).toHaveProperty("$and")
-        expect(res.$and[0]).toHaveProperty("date")
-        expect(res.$and[1]).toHaveProperty("date")
-        expect(res.$and.find(element => element.date.$gte).date).toHaveProperty("$gte")
-        expect(res.$and.find(element => element.date.$lte).date).toHaveProperty("$lte")
+        expect(res).toHaveProperty("date")
+        expect(res.date).toHaveProperty("$gte")
+        expect(res.date).toHaveProperty("$lte")
 
-        expect(res.$and.find(element => element.date.$gte).date.$gte.toISOString().slice(0, 19)).toEqual(req.query.from.slice(0, 10) + "T00:00:00")
-        expect(res.$and.find(element => element.date.$lte).date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T23:59:59")
+        expect(res.date.$gte.toISOString().slice(0, 19)).toEqual(req.query.from.slice(0, 10) + "T00:00:00")
+        expect(res.date.$lte.toISOString().slice(0, 19)).toEqual(req.query.upTo.slice(0, 10) + "T23:59:59")
     });
 
     test("Returns errors", () => {
@@ -498,12 +494,11 @@ describe("handleAmountFilterParams", () => { // TODO: check if $and can be a pro
 
         const result = handleAmountFilterParams(req)
 
-        expect(result).toHaveProperty("$and")
-        expect(result.$and.length).toBe(2)
-        expect(result.$and[0]).toHaveProperty("amount") //check that the max amount is defined
-        expect(result.$and[1]).toHaveProperty("amount") //check that the min amount is defined
-        expect(result.$and.find(element => element.amount.$lte).amount.$lte).toBe(100)
-        expect(result.$and.find(element => element.amount.$gte).amount.$gte).toBe(50)
+        expect(result).toHaveProperty("amount")
+        expect(result.amount).toHaveProperty("$gte") //check that the max amount is defined
+        expect(result.amount).toHaveProperty("$lte") //check that the min amount is defined
+        expect(result.amount.$lte).toBe(100)
+        expect(result.amount.$gte).toBe(50)
     });
 
     test("Should return error (min is not a number), max is a number", () => {

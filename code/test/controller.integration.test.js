@@ -1525,11 +1525,11 @@ describe("getTransactionsByGroup", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })
@@ -1579,11 +1579,11 @@ describe("getTransactionsByGroup", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })
@@ -1726,11 +1726,11 @@ describe("getTransactionsByGroup", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester2@test.com",
-                    user: u3._id
+                    _id: u3._id
                 }
             ] 
         })
@@ -1782,11 +1782,11 @@ describe("getTransactionsByGroup", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })
@@ -1841,11 +1841,11 @@ describe("getTransactionsByGroupByCategory", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })
@@ -1895,11 +1895,11 @@ describe("getTransactionsByGroupByCategory", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })
@@ -2035,11 +2035,11 @@ describe("getTransactionsByGroupByCategory", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })
@@ -2089,11 +2089,11 @@ describe("getTransactionsByGroupByCategory", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })
@@ -2151,11 +2151,11 @@ describe("getTransactionsByGroupByCategory", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester2@test.com",
-                    user: u3._id
+                    _id: u3._id
                 }
             ] 
         })
@@ -2207,11 +2207,11 @@ describe("getTransactionsByGroupByCategory", () => {
             members: [
                 {
                     email: "admin@email.com",
-                    user: u1._id
+                    _id: u1._id
                 },
                 {
                     email: "tester@test.com",
-                    user: u2._id
+                    _id: u2._id
                 }
             ] 
         })

@@ -146,7 +146,7 @@ export const logout = async (req, res) => {
         res.cookie("accessToken", "", { httpOnly: true, path: '/api', maxAge: 0, sameSite: 'none', secure: true })
         res.cookie('refreshToken', "", { httpOnly: true, path: '/api', maxAge: 0, sameSite: 'none', secure: true })
         const savedUser = await user.save()
-        res.status(200).json({message: 'User logged out'})
+        res.status(200).json({ data: {message: 'User logged out'} })
     } catch (error) {
         res.status(500).json({error: error.message})
     }

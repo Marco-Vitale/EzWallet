@@ -11,7 +11,16 @@ import jwt from 'jsonwebtoken'
 
 function validateDateFormat(dateString) {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
-    return regex.test(dateString);
+    if(!regex.test(dateString)){
+        return false;
+    }
+    const words = dateString.split("-");
+    const month = parseInt(words[1]);
+    const day = parseInt(words[2]);
+    if(month === 0 || month > 12 || day === 0 || day > 31){
+        return false;
+    }
+    return true;
 }
 
 
@@ -34,7 +43,7 @@ export const handleDateFilterParams = (req) => {
         }
         const start = new Date(`${date}T00:00:00.000Z`);
         const end = new Date(`${date}T23:59:59.999Z`);
-        return {$and: [{date: {$gte: start}}, {date: {$lte: end}}]};
+        return {date: {$gte: start, $lte: end}};
     }else if(from){
         if(!validateDateFormat(from)){
             throw new Error("Incorrect format of the date!");
@@ -43,7 +52,7 @@ export const handleDateFilterParams = (req) => {
             if(!validateDateFormat(upTo)){
                 throw new Error("Incorrect format of the date!");
             }
-            return {$and: [{date: {$gte: new Date(`${from}T00:00:00.000Z`)}}, {date: {$lte:new Date(`${upTo}T23:59:59.999Z`)}}]};
+            return {date: {$gte: new Date(`${from}T00:00:00.000Z`), $lte:new Date(`${upTo}T23:59:59.999Z`)}};
         }else{
             return {date: {$gte: new Date(`${from}T00:00:00.000Z`)}};
         }
@@ -235,7 +244,7 @@ export const handleAmountFilterParams = (req) => {
             if(isNaN(max)){
                 throw new Error("not numerical values");
             }
-            return {$and: [{amount: {$lte: parseFloat(max)}}, {amount: {$gte: parseFloat(min)}}]};
+            return {amount: {$lte: parseFloat(max), $gte: parseFloat(min)}};
         }else{
             return {amount: {$gte: parseFloat(min)}};
         }

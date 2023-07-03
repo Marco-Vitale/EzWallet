@@ -329,8 +329,8 @@ describe('logout', () => {
         .set("Cookie", `accessToken=${testerAccessTokenValid};refreshToken=${testerAccessTokenValid}`) 
         .then((response) => {
           expect(response.status).toBe(200)
-          expect(response.body).toHaveProperty("message")
-          expect(response.body.message).toEqual("User logged out")
+          expect(response.body.data).toHaveProperty("message")
+          expect(response.body.data.message).toEqual("User logged out")
           done() // Notify Jest that the test is complete
         })
         .catch((err) => done(err))
