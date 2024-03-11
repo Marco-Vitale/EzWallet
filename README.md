@@ -1,3 +1,5 @@
+# This project was developed during the 2022/2023 Software Engineering course @ Politecnico di Torino
+
 # EZWallet
 
 EZWallet is a web application designed to help individuals and families keep track of their 
